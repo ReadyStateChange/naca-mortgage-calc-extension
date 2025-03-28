@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128"
+  xmlns="http://www.w3.org/2000/svg">
+  <!-- Background (transparent) -->
+  <rect x="0" y="0" width="128" height="128" fill="none"/>
+
+  <!-- House icon - positioned in the center -->
+  <g transform="translate(24, 24) scale(0.8)">
+    <!-- House shape in NACA red -->
+    <path d="M50,10 L90,40 L90,90 L10,90 L10,40 Z" fill="#E31837" stroke="none"/>
+  </g>
+
+  <!-- NACA text - positioned below house -->
+  <text x="64" y="110" font-family="Arial Black, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#000000">NACA</text>
+</svg>

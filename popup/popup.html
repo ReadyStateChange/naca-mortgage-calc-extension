@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mortgage Calculator</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="calculator">
+      <h2>Mortgage Calculator</h2>
+
+      <div class="calc-mode">
+        <label>
+          <input type="radio" name="calcMethod" value="payment" checked />
+          Calculate Payment
+        </label>
+        <label>
+          <input type="radio" name="calcMethod" value="price" /> Calculate Price
+        </label>
+      </div>
+
+      <div class="input-group">
+        <label for="price">Purchase Price / Payment</label>
+        <input type="text" id="price" placeholder="Enter amount" />
+      </div>
+
+      <div class="input-group">
+        <label for="term">Loan Term</label>
+        <select id="term">
+          <option value="30">30 Years</option>
+          <option value="20">20 Years</option>
+          <option value="15">15 Years</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="rate">Interest Rate (%)</label>
+        <input type="text" id="rate" placeholder="Enter rate" />
+      </div>
+
+      <div class="input-group">
+        <label for="tax">Property Tax (%)</label>
+        <input type="text" id="tax" placeholder="Enter tax rate" />
+      </div>
+
+      <div class="input-group">
+        <label for="insurance">Insurance (Monthly)</label>
+        <input
+          type="text"
+          id="insurance"
+          placeholder="Enter insurance amount"
+        />
+      </div>
+
+      <div class="input-group">
+        <label for="downPayment">Down Payment</label>
+        <input type="text" id="downPayment" placeholder="Enter down payment" />
+      </div>
+
+      <button id="calculate">Calculate</button>
+
+      <div class="results">
+        <div class="result-item">
+          <span>Monthly Payment:</span>
+          <span id="monthlyPayment">$0</span>
+        </div>
+        <div class="result-item">
+          <span>Purchase Price:</span>
+          <span id="purchasePrice">$0</span>
+        </div>
+      </div>
+    </div>
+
+    <script src="../js/calculator.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

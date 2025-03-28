@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "NACA Mortgage Calculator",
+  "version": "1.0",
+  "description": "Calculate mortgage payments and purchase prices",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "permissions": []
+}
