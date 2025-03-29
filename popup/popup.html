@@ -104,15 +104,28 @@
       <div class="input-group">
         <label for="insurance">Insurance (Monthly)</label>
         <input
-          type="text"
+          type="number"
           id="insurance"
           placeholder="Enter insurance amount"
         />
       </div>
 
       <div class="input-group">
-        <label for="downPayment">Down Payment</label>
-        <input type="text" id="downPayment" placeholder="Enter down payment" />
+        <label for="hoaFee">HOA/Condo Fee (Monthly)</label>
+        <input type="number" id="hoaFee" placeholder="Enter HOA/Condo fee" />
+      </div>
+
+      <div class="input-group">
+        <label for="downPayment"
+          >Down Payment(NACA doesn't require a down payment!)</label
+        >
+        <input
+          type="text"
+          id="downPayment"
+          placeholder="NACA doesn't require a down payment!"
+          value="0"
+          disabled
+        />
       </div>
 
       <button id="calculate">Calculate</button>
@@ -137,6 +150,10 @@
         <div class="result-item">
           <span>Insurance:</span>
           <span id="insuranceAmount">$0</span>
+        </div>
+        <div class="result-item">
+          <span>HOA/Condo Fee:</span>
+          <span id="hoaFeeDisplay">$0</span>
         </div>
       </div>
     </div>

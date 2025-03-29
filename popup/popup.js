@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const rateInput = document.getElementById("rate");
   const taxInput = document.getElementById("tax");
   const insuranceInput = document.getElementById("insurance");
+  const hoaFeeInput = document.getElementById("hoaFee");
   const downPaymentInput = document.getElementById("downPayment");
   const calculateButton = document.getElementById("calculate");
   const monthlyPaymentDisplay = document.getElementById("monthlyPayment");
@@ -17,11 +18,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const principalInterestDisplay = document.getElementById("principalInterest");
   const taxesDisplay = document.getElementById("taxes");
   const insuranceAmountDisplay = document.getElementById("insuranceAmount");
+  const hoaFeeDisplay = document.getElementById("hoaFeeDisplay");
 
   // Set default values
   rateInput.value = "5.625";
   taxInput.value = "5.00";
   insuranceInput.value = "50";
+  hoaFeeInput.value = "0";
+  downPaymentInput.value = "0";
 
   // Handle calculation method change
   calcMethodInputs.forEach((input) => {
@@ -37,21 +41,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // Handle calculate button click
   calculateButton.addEventListener("click", () => {
     const inputs = {
-      price: priceInput.value,
-      term: termSelect.value,
-      rate: rateInput.value,
-      tax: taxInput.value,
-      insurance: insuranceInput.value,
-      downPayment: downPaymentInput.value,
+      price: parseFloat(priceInput.value) || 0,
+      term: parseInt(termSelect.value) || 30,
+      rate: parseFloat(rateInput.value) || 0,
+      tax: parseFloat(taxInput.value) || 0,
+      insurance: parseFloat(insuranceInput.value) || 0,
+      downPayment: parseFloat(downPaymentInput.value) || 0,
+      hoaFee: parseFloat(hoaFeeInput.value) || 0,
     };
-    console.log("inputs", inputs);
+
     const results = calculator.calculate(inputs);
-    console.log("results", results);
+
     monthlyPaymentDisplay.textContent = results.monthlyPayment;
     purchasePriceDisplay.textContent = results.purchasePrice;
     principalInterestDisplay.textContent = results.principalInterest;
     taxesDisplay.textContent = results.taxes;
     insuranceAmountDisplay.textContent = results.insuranceAmount;
+    hoaFeeDisplay.textContent = results.hoaFee;
   });
 
   // Add input validation and formatting
@@ -60,19 +66,22 @@ document.addEventListener("DOMContentLoaded", () => {
     rateInput,
     taxInput,
     insuranceInput,
-    downPaymentInput,
+    hoaFeeInput,
   ];
 
   numericInputs.forEach((input) => {
     input.addEventListener("input", (e) => {
       // Remove non-numeric characters except decimal point
-      e.target.value = e.target.value.replace(/[^0-9.]/g, "");
+      let value = e.target.value.replace(/[^0-9.]/g, "");
 
       // Ensure only one decimal point
-      const parts = e.target.value.split(".");
+      const parts = value.split(".");
       if (parts.length > 2) {
-        e.target.value = parts[0] + "." + parts.slice(1).join("");
+        value = parts[0] + "." + parts.slice(1).join("");
       }
+
+      // Update the input value
+      e.target.value = value;
     });
   });
 });

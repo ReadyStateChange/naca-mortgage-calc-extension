@@ -7,15 +7,18 @@ class MortgageCalculator {
     this.calcMethod = method;
   }
 
+  /**
+   * Format a number to a string with a prefix and commas
+   * @param {number} num
+   * @param {number} decimals
+   * @param {string} prefix
+   * @returns {string}
+   */
   formatNumber(num, decimals = 2, prefix = "$") {
     if (isNaN(num)) return "";
     return `${prefix}${num
       .toFixed(decimals)
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-  }
-
-  parseInput(value) {
-    return parseFloat(value.replace(/[^0-9.-]+/g, "")) || 0;
   }
 
   /**
@@ -61,6 +64,7 @@ class MortgageCalculator {
    * @param {number} term The term of the mortgage in years
    * @param {number} taxRate The tax rate per $1000 of mortgage
    * @param {number} insurance The monthly insurance amount
+   * @param {number} hoaFee The monthly HOA/Condo fee
    * @returns {number} The max purchase price
    */
   calculateMaxPurchasePrice(
@@ -68,7 +72,8 @@ class MortgageCalculator {
     rate,
     term,
     taxRate,
-    insurance
+    insurance,
+    hoaFee
   ) {
     const monthlyRate = rate / 100 / 12;
     const numberOfPayments = term * 12;
@@ -91,7 +96,8 @@ class MortgageCalculator {
       totalMonthlyPayment =
         this.calculateBaseMonthlyPayment(guess, rate, term) +
         this.calculateMonthlyTax(guess, taxRate) +
-        insurance;
+        insurance +
+        hoaFee;
       if (totalMonthlyPayment > desiredMonthlyPayment) {
         high = guess;
       } else {
@@ -104,61 +110,58 @@ class MortgageCalculator {
   }
 
   calculate(inputs) {
-    const { price, term, rate, tax, insurance, downPayment } = inputs;
+    const { price, term, rate, tax, insurance, downPayment, hoaFee } = inputs;
 
     if (this.calcMethod === "payment") {
       const desiredMonthlyPayment = this.parseInput(price);
 
       const purchasePrice = this.calculateMaxPurchasePrice(
         desiredMonthlyPayment,
-        this.parseInput(rate),
-        this.parseInput(term),
-        this.parseInput(tax),
-        this.parseInput(insurance)
+        rate,
+        term,
+        tax,
+        insurance,
+        hoaFee
       );
 
       const principalInterest = this.calculateBaseMonthlyPayment(
         purchasePrice,
-        this.parseInput(rate),
-        this.parseInput(term)
+        rate,
+        term
       );
 
-      const monthlyTax = this.calculateMonthlyTax(
-        purchasePrice,
-        this.parseInput(tax)
-      );
+      const monthlyTax = this.calculateMonthlyTax(purchasePrice, tax);
 
       return {
         monthlyPayment: this.formatNumber(desiredMonthlyPayment),
         purchasePrice: this.formatNumber(purchasePrice),
         principalInterest: this.formatNumber(principalInterest),
         taxes: this.formatNumber(monthlyTax),
-        insuranceAmount: this.formatNumber(this.parseInput(insurance)),
+        insuranceAmount: this.formatNumber(insurance),
+        hoaFee: this.formatNumber(hoaFee),
       };
     } else {
-      const purchasePrice = this.parseInput(price);
-      const principal = purchasePrice - this.parseInput(downPayment);
+      const purchasePrice = price;
+      const principal = purchasePrice - downPayment;
 
       const principalInterest = this.calculateBaseMonthlyPayment(
         principal,
-        this.parseInput(rate),
-        this.parseInput(term)
+        rate,
+        term
       );
 
-      const monthlyTax = this.calculateMonthlyTax(
-        purchasePrice,
-        this.parseInput(tax)
-      );
+      const monthlyTax = this.calculateMonthlyTax(purchasePrice, tax);
 
       const totalMonthlyPayment =
-        principalInterest + monthlyTax + this.parseInput(insurance);
+        principalInterest + monthlyTax + insurance + hoaFee;
 
       return {
         monthlyPayment: this.formatNumber(totalMonthlyPayment),
         purchasePrice: this.formatNumber(purchasePrice),
         principalInterest: this.formatNumber(principalInterest),
         taxes: this.formatNumber(monthlyTax),
-        insuranceAmount: this.formatNumber(this.parseInput(insurance)),
+        insuranceAmount: this.formatNumber(insurance),
+        hoaFee: this.formatNumber(hoaFee),
       };
     }
   }
