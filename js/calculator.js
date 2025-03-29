@@ -18,101 +18,147 @@ class MortgageCalculator {
     return parseFloat(value.replace(/[^0-9.-]+/g, "")) || 0;
   }
 
-  calculateMonthlyPayment(principal, rate, term) {
+  /**
+   * Calculate base monthly payment of principal + interest
+   * @param {number} principal
+   * @param {number} rate
+   * @param {number} term
+   * @returns {number}
+   */
+  calculateBaseMonthlyPayment(principal, rate, term) {
+    // Convert annual rate to monthly rate
     const monthlyRate = rate / 100 / 12;
+    // Convert term to number of payments
     const numberOfPayments = term * 12;
 
-    if (monthlyRate === 0) {
-      return principal / numberOfPayments;
-    }
-
-    const monthlyPayment =
+    return (
       (principal * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
-      (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
-
-    return Math.round(monthlyPayment * 100) / 100;
+      (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
+    );
   }
 
-  calculatePurchasePrice(payment, rate, term, taxRate, insurance, downPayment) {
+  /**
+   * Calculate the monthly tax amount
+   * @param {number} principal The purchase price of the house
+   * @param {number} taxRate The tax rate per $1000 of mortgage
+   * @returns {number} The monthly tax amount
+   */
+  calculateMonthlyTax(principal, taxRate) {
+    // turn tax rate from per $1000 to per $1
+    const taxRatePerDollar = taxRate / 1000;
+    // Calculate yearly tax amount
+    const yearlyTax = principal * taxRatePerDollar;
+    // Calculate monthly tax amount
+    const monthlyTax = yearlyTax / 12;
+    // Round to 2 decimal places
+    return Math.round(monthlyTax);
+  }
+
+  /**
+   * Given a desired max monthly payment, calculate the max purchase price
+   * @param {number} desiredMonthlyPayment The desired max monthly payment
+   * @param {number} rate The annual interest rate
+   * @param {number} term The term of the mortgage in years
+   * @param {number} taxRate The tax rate per $1000 of mortgage
+   * @param {number} insurance The monthly insurance amount
+   * @returns {number} The max purchase price
+   */
+  calculateMaxPurchasePrice(
+    desiredMonthlyPayment,
+    rate,
+    term,
+    taxRate,
+    insurance
+  ) {
     const monthlyRate = rate / 100 / 12;
     const numberOfPayments = term * 12;
-    const monthlyTax = taxRate / 100 / 12;
 
     // Initial guess for principal
-    let principal = payment * numberOfPayments;
-    let monthlyPayment = this.calculateMonthlyPayment(principal, rate, term);
-    let totalMonthlyPayment =
-      monthlyPayment + principal * monthlyTax + insurance;
+    let principal = desiredMonthlyPayment * numberOfPayments;
 
     // Binary search to find the correct principal
     let low = 0;
-    let high = payment * numberOfPayments * 2;
+    let high = principal * 2;
     let iterations = 0;
-    const maxIterations = 100;
-
+    const maxIterations = 1000;
+    let totalMonthlyPayment = 0;
+    let guess = 0;
     while (
-      Math.abs(totalMonthlyPayment - payment) > 0.01 &&
-      iterations < maxIterations
+      iterations < maxIterations &&
+      Math.abs(totalMonthlyPayment - desiredMonthlyPayment) > 0.01
     ) {
-      if (totalMonthlyPayment > payment) {
-        high = principal;
+      guess = (low + high) / 2;
+      totalMonthlyPayment =
+        this.calculateBaseMonthlyPayment(guess, rate, term) +
+        this.calculateMonthlyTax(guess, taxRate) +
+        insurance;
+      if (totalMonthlyPayment > desiredMonthlyPayment) {
+        high = guess;
       } else {
-        low = principal;
+        low = guess;
       }
-
-      principal = (low + high) / 2;
-      monthlyPayment = this.calculateMonthlyPayment(principal, rate, term);
-      totalMonthlyPayment = monthlyPayment + principal * monthlyTax + insurance;
       iterations++;
     }
 
-    return principal + downPayment;
+    return guess;
   }
 
   calculate(inputs) {
     const { price, term, rate, tax, insurance, downPayment } = inputs;
 
     if (this.calcMethod === "payment") {
-      const principal = this.parseInput(price) - this.parseInput(downPayment);
-      const monthlyPayment = this.calculateMonthlyPayment(
-        principal,
-        this.parseInput(rate),
-        this.parseInput(term)
-      );
+      const desiredMonthlyPayment = this.parseInput(price);
 
-      const monthlyTax =
-        (this.parseInput(price) * this.parseInput(tax)) / 100 / 12;
-      const totalMonthlyPayment =
-        monthlyPayment + monthlyTax + this.parseInput(insurance);
-
-      return {
-        monthlyPayment: this.formatNumber(totalMonthlyPayment),
-        purchasePrice: this.formatNumber(this.parseInput(price)),
-      };
-    } else {
-      const purchasePrice = this.calculatePurchasePrice(
-        this.parseInput(price),
+      const purchasePrice = this.calculateMaxPurchasePrice(
+        desiredMonthlyPayment,
         this.parseInput(rate),
         this.parseInput(term),
         this.parseInput(tax),
-        this.parseInput(insurance),
-        this.parseInput(downPayment)
+        this.parseInput(insurance)
       );
 
+      const principalInterest = this.calculateBaseMonthlyPayment(
+        purchasePrice,
+        this.parseInput(rate),
+        this.parseInput(term)
+      );
+
+      const monthlyTax = this.calculateMonthlyTax(
+        purchasePrice,
+        this.parseInput(tax)
+      );
+
+      return {
+        monthlyPayment: this.formatNumber(desiredMonthlyPayment),
+        purchasePrice: this.formatNumber(purchasePrice),
+        principalInterest: this.formatNumber(principalInterest),
+        taxes: this.formatNumber(monthlyTax),
+        insuranceAmount: this.formatNumber(this.parseInput(insurance)),
+      };
+    } else {
+      const purchasePrice = this.parseInput(price);
       const principal = purchasePrice - this.parseInput(downPayment);
-      const monthlyPayment = this.calculateMonthlyPayment(
+
+      const principalInterest = this.calculateBaseMonthlyPayment(
         principal,
         this.parseInput(rate),
         this.parseInput(term)
       );
 
-      const monthlyTax = (purchasePrice * this.parseInput(tax)) / 100 / 12;
+      const monthlyTax = this.calculateMonthlyTax(
+        purchasePrice,
+        this.parseInput(tax)
+      );
+
       const totalMonthlyPayment =
-        monthlyPayment + monthlyTax + this.parseInput(insurance);
+        principalInterest + monthlyTax + this.parseInput(insurance);
 
       return {
         monthlyPayment: this.formatNumber(totalMonthlyPayment),
         purchasePrice: this.formatNumber(purchasePrice),
+        principalInterest: this.formatNumber(principalInterest),
+        taxes: this.formatNumber(monthlyTax),
+        insuranceAmount: this.formatNumber(this.parseInput(insurance)),
       };
     }
   }

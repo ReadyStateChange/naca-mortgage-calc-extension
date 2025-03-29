@@ -1,9 +1,18 @@
+/**
+ * @param {number} intRate This will be a number with decimals like 6.6 or 3.4 etc
+ * @param {number} term number - The number of years in the mortgage. 15 or 30
+ * @param {number} principal number - The amount of money being borrowed
+ * @returns {number}  This is the core monthly payment without interest, taxes, hoa
+ */
 function cff_pmt(intRate, term, principal) {
+  // redefine intRate to be the interest charged per month
   intRate = parseFloat(intRate) / 100 / 12;
+  // multiply term by 12 to redefine term to be the total number of months
   term *= 12;
-
+  // if the intRate is so low just return below as the monthly payment
   if (intRate == 0) return parseInt((principal / term) * 100) / 100;
 
+  // This is the monthly payment calculation
   return (
     Math.floor(
       ((principal * intRate) / (1 - Math.pow(1 + intRate, -1 * term))) * 100
@@ -22,7 +31,11 @@ function cff_pv(intRate, term, payment, futureValue) {
     intRate
   );
 }
-
+/**
+ * Parses the arg passed in to conver it to a number. Returns 0 if it cannot be converted
+ * @param {string|number} argValue
+ * @returns {number}
+ */
 function cff_convertToNumber(argValue) {
   var l_iTemp;
 
@@ -35,6 +48,15 @@ function cff_convertToNumber(argValue) {
   return +l_iTemp || 0;
 }
 
+/**
+ * @param {number} num  - The number to be formatted
+ * @param {numer} decimalNum The number of decimals to show
+ * @param {'$'|'%'} argSign To format the number as dollars or a percentage
+ * @param {boolean} bolCommas To format the number with commas
+ * @param {boolean} bolParens To format the number with parentheses
+ * @param {boolean} bolLeadingZero To format the number with a leading zero
+ * @returns {string} A string representation of the num formatted as specified
+ */
 function cff_formatNumber(
   num,
   decimalNum,

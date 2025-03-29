@@ -14,10 +14,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const calculateButton = document.getElementById("calculate");
   const monthlyPaymentDisplay = document.getElementById("monthlyPayment");
   const purchasePriceDisplay = document.getElementById("purchasePrice");
+  const principalInterestDisplay = document.getElementById("principalInterest");
+  const taxesDisplay = document.getElementById("taxes");
+  const insuranceAmountDisplay = document.getElementById("insuranceAmount");
 
   // Set default values
   rateInput.value = "5.625";
-  taxInput.value = "1.25";
+  taxInput.value = "5.00";
   insuranceInput.value = "50";
 
   // Handle calculation method change
@@ -26,8 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
       calculator.setCalcMethod(e.target.value);
       priceInput.placeholder =
         e.target.value === "payment"
-          ? "Enter purchase price"
-          : "Enter desired monthly payment";
+          ? "Enter desired monthly payment"
+          : "Enter purchase price";
     });
   });
 
@@ -41,11 +44,14 @@ document.addEventListener("DOMContentLoaded", () => {
       insurance: insuranceInput.value,
       downPayment: downPaymentInput.value,
     };
-
+    console.log("inputs", inputs);
     const results = calculator.calculate(inputs);
-
+    console.log("results", results);
     monthlyPaymentDisplay.textContent = results.monthlyPayment;
     purchasePriceDisplay.textContent = results.purchasePrice;
+    principalInterestDisplay.textContent = results.principalInterest;
+    taxesDisplay.textContent = results.taxes;
+    insuranceAmountDisplay.textContent = results.insuranceAmount;
   });
 
   // Add input validation and formatting
