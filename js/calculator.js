@@ -16,9 +16,11 @@ class MortgageCalculator {
    */
   formatNumber(num, decimals = 2, prefix = "$") {
     if (isNaN(num)) return "";
-    return `${prefix}${num
-      .toFixed(decimals)
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+    return `${prefix}${
+      num
+        .toFixed(decimals)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+    }`;
   }
 
   /**
@@ -73,7 +75,7 @@ class MortgageCalculator {
     term,
     taxRate,
     insurance,
-    hoaFee
+    hoaFee,
   ) {
     const monthlyRate = rate / 100 / 12;
     const numberOfPayments = term * 12;
@@ -113,7 +115,7 @@ class MortgageCalculator {
     const { price, term, rate, tax, insurance, downPayment, hoaFee } = inputs;
 
     if (this.calcMethod === "payment") {
-      const desiredMonthlyPayment = this.parseInput(price);
+      const desiredMonthlyPayment = price;
 
       const purchasePrice = this.calculateMaxPurchasePrice(
         desiredMonthlyPayment,
@@ -121,13 +123,13 @@ class MortgageCalculator {
         term,
         tax,
         insurance,
-        hoaFee
+        hoaFee,
       );
 
       const principalInterest = this.calculateBaseMonthlyPayment(
         purchasePrice,
         rate,
-        term
+        term,
       );
 
       const monthlyTax = this.calculateMonthlyTax(purchasePrice, tax);
@@ -147,13 +149,13 @@ class MortgageCalculator {
       const principalInterest = this.calculateBaseMonthlyPayment(
         principal,
         rate,
-        term
+        term,
       );
 
       const monthlyTax = this.calculateMonthlyTax(purchasePrice, tax);
 
-      const totalMonthlyPayment =
-        principalInterest + monthlyTax + insurance + hoaFee;
+      const totalMonthlyPayment = principalInterest + monthlyTax + insurance +
+        hoaFee;
 
       return {
         monthlyPayment: this.formatNumber(totalMonthlyPayment),
