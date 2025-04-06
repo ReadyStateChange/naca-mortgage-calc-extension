@@ -19,13 +19,65 @@ document.addEventListener("DOMContentLoaded", () => {
   const taxesDisplay = document.getElementById("taxes");
   const insuranceAmountDisplay = document.getElementById("insuranceAmount");
   const hoaFeeDisplay = document.getElementById("hoaFeeDisplay");
+  const interestRateBuydownSlider = document.getElementById(
+    "interestRateBuydown",
+  );
+  const interestRateBuydownValue = document.getElementById(
+    "interestRateBuydownValue",
+  );
+  const principalBuydownSlider = document.getElementById("principalBuydown");
+  const principalBuydownValue = document.getElementById(
+    "principalBuydownValue",
+  );
+  const totalBuydownCostDisplay = document.getElementById("totalBuydownCost");
+
+  // Define interest rates based on loan term
+  const interestRates = {
+    "15": ["4.75", "5.75"],
+    "20": ["4.875", "5.875"],
+    "30": ["5.375", "6.375"],
+  };
+
+  // Function to update interest rate options based on term
+  function updateInterestRateOptions(term) {
+    // Clear current options
+    rateInput.innerHTML = "";
+
+    // Add new options based on the selected term
+    const rates = interestRates[term] || interestRates["30"];
+    rates.forEach((rate) => {
+      const option = document.createElement("option");
+      option.value = rate;
+      option.textContent = `${rate}%`;
+      rateInput.appendChild(option);
+    });
+
+    // Set the higher interest rate (second option) as the default value
+    if (rates.length > 1) {
+      rateInput.value = rates[1]; // Select the higher rate (second in the array)
+    }
+    // Update buydown slider after rate is updated
+    setTimeout(() => {
+      const currentRate = parseFloat(rateInput.value);
+      interestRateBuydownSlider.max = currentRate;
+      interestRateBuydownSlider.value = currentRate;
+      interestRateBuydownValue.textContent = `${currentRate}%`;
+    }, 0);
+  }
 
   // Set default values
-  rateInput.value = "5.375";
   taxInput.value = "15.00";
   insuranceInput.value = "50";
   hoaFeeInput.value = "0";
   downPaymentInput.value = "0";
+
+  // Initialize interest rate options based on default term (30 years)
+  updateInterestRateOptions(termSelect.value);
+
+  // Handle term change
+  termSelect.addEventListener("change", () => {
+    updateInterestRateOptions(termSelect.value);
+  });
 
   // Handle calculation method change
   calcMethodInputs.forEach((input) => {

@@ -210,3 +210,65 @@ button:hover {
   cursor: help;
   /* Indicate it's interactive */
 }
+
+/* Buydown Section Styles */
+.buydown-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f8f8f8;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.buydown-section h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-container input[type="range"] {
+  flex: 1;
+  height: 5px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #ddd;
+  outline: none;
+  border-radius: 5px;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #4a90e2;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.slider-container input[type="range"]::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #4a90e2;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.slider-container span {
+  min-width: 40px;
+  text-align: right;
+  font-weight: 500;
+  color: #4a90e2;
+}
+
+.buydown-result {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #ddd;
+}

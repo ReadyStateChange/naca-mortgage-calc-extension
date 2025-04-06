@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-unused-vars
 class MortgageCalculator {
   constructor() {
     this.calcMethod = "payment";
@@ -81,7 +82,7 @@ class MortgageCalculator {
     const numberOfPayments = term * 12;
 
     // Initial guess for principal
-    let principal = desiredMonthlyPayment * numberOfPayments;
+    const principal = desiredMonthlyPayment * numberOfPayments;
 
     // Binary search to find the correct principal
     let low = 0;
