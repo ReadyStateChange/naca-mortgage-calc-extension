@@ -21,8 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const hoaFeeDisplay = document.getElementById("hoaFeeDisplay");
 
   // Set default values
-  rateInput.value = "5.625";
-  taxInput.value = "5.00";
+  rateInput.value = "5.375";
+  taxInput.value = "15.00";
   insuranceInput.value = "50";
   hoaFeeInput.value = "0";
   downPaymentInput.value = "0";
@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // --- Tab Handling ---
-  const tabButtons = document.querySelectorAll(".tab-button");
+  const tabButtons = document.querySelectorAll(".tab-btn");
   const tabContents = document.querySelectorAll(".tab-content");
 
   tabButtons.forEach((button) => {
@@ -102,57 +102,55 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // --- MSA Lookup Logic ---
-  const lookupButton = document.getElementById("lookupMsa");
-  const addressInput = document.getElementById("msaAddress");
+  const addressInput = document.getElementById("address");
+  const lookupButton = document.getElementById("lookup-btn");
   const statusDiv = document.getElementById("msaStatus");
-  const resultsDiv = document.querySelector(".msa-results");
-  const msaIncomeSpan = document.getElementById("msaResultMsaIncome");
-  const tractIncomeSpan = document.getElementById("msaResultTractIncome");
-  const tractPercentSpan = document.getElementById("msaResultTractPercent");
-  const yearSpan = document.getElementById("msaResultYear");
+  const msaIncomeDisplay = document.getElementById("msaResultMsaIncome");
+  const tractIncomeDisplay = document.getElementById("msaResultTractIncome");
+  const tractPercentDisplay = document.getElementById("msaResultTractPercent");
+  const yearDisplay = document.getElementById("msaResultYear");
 
   if (lookupButton) {
     lookupButton.addEventListener("click", () => {
       const address = addressInput.value.trim();
       if (!address) {
         statusDiv.textContent = "Please enter an address.";
-        resultsDiv.style.display = "none";
         return;
       }
 
       statusDiv.textContent = "Looking up address...";
-      resultsDiv.style.display = "none"; // Hide previous results
 
-      // **Placeholder for actual lookup**
-      // This function needs to be replaced with a call to your backend service
-      // that runs the logic from msa-lookup.js
+      // Reset all display fields
+      msaIncomeDisplay.textContent = "-";
+      tractIncomeDisplay.textContent = "-";
+      tractPercentDisplay.textContent = "-";
+      yearDisplay.textContent = "-";
+
       performMsaLookup(address)
         .then((result) => {
           if (result) {
             statusDiv.textContent = `Data found for: ${
               result.address || address
             }`;
-            msaIncomeSpan.textContent = `$${
+
+            // Update all fields with response data
+            msaIncomeDisplay.textContent = `$${
               result.msaMedianFamilyIncome?.toLocaleString() || "N/A"
             }`;
-            tractIncomeSpan.textContent = `$${
+            tractIncomeDisplay.textContent = `$${
               result.tractMedianFamilyIncome?.toLocaleString() || "N/A"
             }`;
-            tractPercentSpan.textContent = `${
+            tractPercentDisplay.textContent = `${
               result.tractPercentOfMsa || "N/A"
             }%`;
-            yearSpan.textContent = result.year || "N/A";
-            resultsDiv.style.display = "block"; // Show results
+            yearDisplay.textContent = result.year || "N/A";
           } else {
-            // Handled in catch block usually, but handle null return explicitly
-            statusDiv.textContent =
-              "Could not retrieve income data for this address.";
-            resultsDiv.style.display = "none";
+            statusDiv.textContent = "Could not retrieve data for this address.";
           }
         })
         .catch((error) => {
           statusDiv.textContent = `Error: ${error.message}`;
-          resultsDiv.style.display = "none";
+          console.error("MSA lookup error:", error);
         });
     });
   }

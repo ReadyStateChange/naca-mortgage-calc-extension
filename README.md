@@ -9,6 +9,11 @@ This browser extension mimics the mortgage calculator available on the [NACA web
 - Includes calculations for principal, interest, taxes, and insurance (PITI).
 - Supports different loan terms and interest rates.
 - No down payment required with a NACA mortgage.
+- MSA (Metropolitan Statistical Area) Lookup feature that returns:
+  - MSA Median Family Income
+  - Tract Median Family Income
+  - Tract Percent of MSA
+  - Income data year
 
 ## Installation
 
