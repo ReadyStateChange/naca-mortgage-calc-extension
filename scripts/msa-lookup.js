@@ -29,7 +29,7 @@ async function getAddressIncomeInfo(address) {
     // Step 2: Extract FIPS codes and tract info
     const { state, county, tract } = extractLocationData(geocodeResult);
     console.log(
-      `Address is in census tract: ${tract} (State: ${state}, County: ${county})`
+      `Address is in census tract: ${tract} (State: ${state}, County: ${county})`,
     );
 
     // Step 3: Get income data from PostgreSQL database
@@ -65,8 +65,10 @@ function geocodeAddress(address) {
     const encodedAddress = encodeURIComponent(address);
 
     // Build Census Geocoder API URL
-    const apiUrl = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodedAddress}&benchmark=2020&vintage=2020&format=json`;
+    const apiUrl =
+      `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodedAddress}&benchmark=4&vintage=4&format=json`;
 
+    console.log(apiUrl);
     // Make the request to Census API
     https
       .get(apiUrl, (response) => {
@@ -98,7 +100,7 @@ function geocodeAddress(address) {
             }
           } catch (error) {
             reject(
-              new Error(`Failed to parse geocoding response: ${error.message}`)
+              new Error(`Failed to parse geocoding response: ${error.message}`),
             );
           }
         });
@@ -115,7 +117,8 @@ function geocodeAddress(address) {
  * @returns {object} - Extracted location data
  */
 function extractLocationData(geocodeResult) {
-  const censusBlocks = geocodeResult.geographies["Census Blocks"][0];
+  console.log("geocodeResult", geocodeResult);
+  const censusBlocks = geocodeResult.geographies["2020 Census Blocks"][0];
   const censusTract = geocodeResult.geographies["Census Tracts"][0];
 
   return {
@@ -186,18 +189,17 @@ function printResults(result) {
     return;
   }
 
+  console.log(result);
   console.log("\n=== ADDRESS INCOME ANALYSIS ===");
   console.log(`Address: ${result.address}`);
   console.log(
-    `Location: Census Tract ${result.tract}, County: ${result.county}, State: ${result.state}`
+    `Location: Census Tract ${result.tract}, County: ${result.county}, State: ${result.state}`,
   );
   console.log(
-    `\nMSA Median Family Income (${
-      result.year
-    }): $${result.msaMedianFamilyIncome.toLocaleString()}`
+    `\nMSA Median Family Income (${result.year}): $${result.msaMedianFamilyIncome.toLocaleString()}`,
   );
   console.log(
-    `Tract Median Family Income: $${result.tractMedianFamilyIncome.toLocaleString()}`
+    `Tract Median Family Income: $${result.tractMedianFamilyIncome.toLocaleString()}`,
   );
   console.log(`Tract Income as % of MSA Income: ${result.tractPercentOfMsa}%`);
 
@@ -230,6 +232,7 @@ if (require.main === module) {
   getAddressIncomeInfo(address)
     .then((result) => {
       if (result) {
+        console.log("getting results", result);
         printResults(result);
       } else {
         console.error("Failed to analyze the address");

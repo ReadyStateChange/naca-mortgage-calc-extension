@@ -29,8 +29,7 @@ interface IncomeData {
 async function geocodeAddress(address: string) {
   const encodedAddress = encodeURIComponent(address);
   const apiUrl =
-    `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodedAddress}&benchmark=2020&vintage=2020&format=json`;
-
+    `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodedAddress}&benchmark=4&vintage=4&format=json`;
   const response = await fetch(apiUrl);
   const data = await response.json();
 
@@ -48,7 +47,7 @@ async function geocodeAddress(address: string) {
 }
 
 function extractLocationData(geocodeResult: any): LocationData {
-  const censusBlocks = geocodeResult.geographies["Census Blocks"][0];
+  const censusBlocks = geocodeResult.geographies["2020 Census Blocks"][0];
   const censusTract = geocodeResult.geographies["Census Tracts"][0];
 
   return {
