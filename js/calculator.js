@@ -112,6 +112,55 @@ class MortgageCalculator {
     return guess;
   }
 
+  /**
+   * Interest rate buydown calculator. Calculates the cost to buy down the interest rate.
+   * Assumes 1 point (costing 1% of principal) buys a 1/6% rate reduction for 30 or 20 year mortgages.
+   * Assumes 1 point (costing 1% of principal) buys a 1/4% rate reduction for 15 year mortgages.
+   *
+   * @param {number} principal The principal amount of the mortgage
+   * @param {number} rate The starting annual interest rate (e.g., 6.5 for 6.5%)
+   * @param {number} desiredRate The target annual interest rate (e.g., 6.0 for 6.0%)
+   * @param {number} term The term of the mortgage in years
+   * @return {number} The cost to buy down the interest rate. Returns 0 if desiredRate >= rate.
+   */
+  calculateInterestRateBuydown(principal, rate, desiredRate, term) {
+    if (
+      isNaN(principal) ||
+      isNaN(rate) ||
+      isNaN(desiredRate) ||
+      isNaN(term) ||
+      principal <= 0 ||
+      term <= 0
+    ) {
+      return 0;
+    }
+
+    const rateDifference = rate - desiredRate;
+
+    if (rateDifference <= 0) {
+      return 0; // No cost if the desired rate is not lower
+    }
+
+    let pointsMultiplier;
+    if (term === 15) {
+      // For 15 year term, 1 point buys 1/4% reduction (0.25)
+      // Points = RateDifference / (1/4) = RateDifference * 4
+      pointsMultiplier = 4;
+    } else {
+      // For other terms (e.g., 20, 30), 1 point buys 1/6% reduction (~0.1667)
+      // Points = RateDifference / (1/6) = RateDifference * 6
+      pointsMultiplier = 6;
+    }
+
+    const pointsNeeded = rateDifference * pointsMultiplier;
+
+    // Calculate cost. 1 point costs 1% of the principal.
+    // Cost = Points * (Principal * 1%) = Points * Principal / 100
+    const cost = (pointsNeeded * principal) / 100;
+
+    return cost;
+  }
+
   calculate(inputs) {
     const { price, term, rate, tax, insurance, downPayment, hoaFee } = inputs;
 
