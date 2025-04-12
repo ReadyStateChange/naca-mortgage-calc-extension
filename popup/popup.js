@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const calculator = new MortgageCalculator();
 
   // Get DOM elements
@@ -31,12 +31,15 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   const totalBuydownCostDisplay = document.getElementById("totalBuydownCost");
 
-  // Define interest rates based on loan term
-  const interestRates = {
-    "15": ["4.75", "5.75"],
-    "20": ["4.875", "5.875"],
-    "30": ["5.875", "6.875"],
-  };
+  const { createClient } = supabase;
+
+  const supabaseUrl = "https://iqmfcfigrvrsuwqvlnfw.supabase.co";
+  const supabaseAnonKey =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxbWZjZmlncnZyc3V3cXZsbmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MDkwMzksImV4cCI6MjA1OTE4NTAzOX0.gI7FtmbUg285dXN_QTJfVLAaKwm5tbKuxbZc3kOau0Q";
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+  // Define interest rates based on term from results of getLatestMortgageRates. The first option is the base NACA rate, the second is always 1% higher.
+  const interestRates = await getLatestMortgageRates(supabaseClient);
 
   // Function to update interest rate options based on term
   function updateInterestRateOptions(term) {
@@ -208,7 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// **Placeholder Function - Replace with Backend Call**
 async function performMsaLookup(address) {
   try {
     const response = await fetch(
@@ -237,5 +239,54 @@ async function performMsaLookup(address) {
   } catch (error) {
     console.error("API call failed:", error);
     throw new Error("Failed to fetch income data from the server.");
+  }
+}
+
+// Look up latest mortgage rates
+// Assumes 'supabase' client is initialized and available globally or imported.
+async function getLatestMortgageRates(supabaseClient) {
+  try {
+    // Fetch the latest row based on a timestamp column, e.g., 'created_at'
+    // Adjust 'created_at' if your column name is different.
+    const { data, error } = await supabaseClient
+      .from("naca_mortgage_rates")
+      .select("*") // Select all columns for the latest entry
+      .order("created_at", { ascending: false }) // Order by creation time, newest first
+      .limit(1) // Get only the latest row
+      .single(); // Expect a single object, throws error if 0 or >1 rows returned
+
+    if (error) {
+      console.error("Supabase fetch error:", error);
+      throw new Error(
+        error.message || "Failed to fetch rates from Supabase.",
+      );
+    }
+
+    if (!data) {
+      console.warn("No mortgage rate data found in the database.");
+      // Return null or a default object, depending on how you want to handle this
+      return null;
+    }
+
+    // Return the data from the latest row.
+    // You might need to extract specific rate columns from the 'data' object later.
+    // e.g., return { "15": data.rate_15yr, "20": data.rate_20yr, "30": data.rate_30yr };
+    // Data comes looking like this: {
+    //     "id": 1,
+    //     "thirty_year_rate": 6,
+    //     "twenty_year_rate": 5.5,
+    //     "fifteen_year_rate": 5.25,
+    //     "updated_at": "2025-04-12T20:19:57.261619+00:00",
+    //     "created_at": "2025-04-12T20:19:57.261619+00:00"
+    // }
+    // Transform it into the format needed for our calculator
+    return {
+      "15": [data.fifteen_year_rate, data.fifteen_year_rate + 1],
+      "20": [data.twenty_year_rate, data.twenty_year_rate + 1],
+      "30": [data.thirty_year_rate, data.thirty_year_rate + 1],
+    };
+  } catch (error) {
+    console.error("Failed to fetch latest mortgage rates:", error);
+    throw new Error("Failed to fetch latest mortgage rates from the server.");
   }
 }
