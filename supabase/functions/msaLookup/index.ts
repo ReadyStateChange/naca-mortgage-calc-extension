@@ -66,9 +66,9 @@ async function getIncomeData(
 ): Promise<IncomeData> {
   // Create Supabase client using ANON key
   const supabaseClient = createClient(
-    Deno.env.get("URL") ?? "",
+    Deno.env.get("NACA_APP_SUPABASE_URL") ?? "",
     // Use the ANON key for potentially public/read-only data access
-    Deno.env.get("ANON_KEY") ?? "",
+    Deno.env.get("NACA_APP_SUPABASE_ANON_KEY") ?? "",
   );
 
   const { data, error } = await supabaseClient

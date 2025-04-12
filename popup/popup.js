@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const interestRates = {
     "15": ["4.75", "5.75"],
     "20": ["4.875", "5.875"],
-    "30": ["5.375", "6.375"],
+    "30": ["5.875", "6.875"],
   };
 
   // Function to update interest rate options based on term
