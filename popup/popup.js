@@ -65,6 +65,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       interestRateBuydownSlider.max = currentRate;
       interestRateBuydownSlider.value = currentRate;
       interestRateBuydownValue.textContent = `${currentRate}%`;
+      totalBuydownCostDisplay.textContent = "$0";
     }, 0);
   }
 
@@ -80,6 +81,73 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Handle term change
   termSelect.addEventListener("change", () => {
     updateInterestRateOptions(termSelect.value);
+
+    // Reset buydown cost display immediately
+    totalBuydownCostDisplay.textContent = "$0";
+
+    // Trigger a recalculation with the new defaults
+    // Use a small timeout to ensure rateInput has updated from updateInterestRateOptions
+    setTimeout(() => {
+      // Get current values (rate will be the new default)
+      const inputs = {
+        price: parseFloat(priceInput.value) || 0,
+        term: parseInt(termSelect.value) || 30,
+        rate: parseFloat(interestRateBuydownSlider.value) || 0, // Use the reset slider value
+        tax: parseFloat(taxInput.value) || 0,
+        insurance: parseFloat(insuranceInput.value) || 0,
+        downPayment: parseFloat(downPaymentInput.value) || 0,
+        hoaFee: parseFloat(hoaFeeInput.value) || 0,
+      };
+
+      const results = calculator.calculate(inputs);
+
+      // Update main results display
+      monthlyPaymentDisplay.textContent = results.monthlyPayment;
+      purchasePriceDisplay.textContent = results.purchasePrice;
+      principalInterestDisplay.textContent = results.principalInterest;
+      taxesDisplay.textContent = results.taxes;
+      insuranceAmountDisplay.textContent = results.insuranceAmount;
+      hoaFeeDisplay.textContent = results.hoaFee;
+
+      // Buydown cost is implicitly reset to $0 because the slider rate now matches the base rate
+      // But we explicitly set it to $0 above for immediate feedback.
+      // If needed, we could re-calculate it here based on the new price/principal if the base rate
+      // wasn't the max (though updateInterestRateOptions should ensure it is).
+    }, 50); // Small delay to ensure DOM updates
+  });
+
+  // Add event listener for manual rate changes
+  rateInput.addEventListener("change", () => {
+    const newRate = parseFloat(rateInput.value);
+
+    // Update the buydown slider's max and current value
+    interestRateBuydownSlider.max = newRate;
+    interestRateBuydownSlider.value = newRate;
+    interestRateBuydownValue.textContent = `${newRate}%`;
+
+    // Reset buydown cost display
+    totalBuydownCostDisplay.textContent = "$0";
+
+    // Trigger a recalculation immediately with the new rate
+    const inputs = {
+      price: parseFloat(priceInput.value) || 0,
+      term: parseInt(termSelect.value) || 30,
+      rate: newRate, // Use the newly selected rate
+      tax: parseFloat(taxInput.value) || 0,
+      insurance: parseFloat(insuranceInput.value) || 0,
+      downPayment: parseFloat(downPaymentInput.value) || 0,
+      hoaFee: parseFloat(hoaFeeInput.value) || 0,
+    };
+
+    const results = calculator.calculate(inputs);
+
+    // Update main results display
+    monthlyPaymentDisplay.textContent = results.monthlyPayment;
+    purchasePriceDisplay.textContent = results.purchasePrice;
+    principalInterestDisplay.textContent = results.principalInterest;
+    taxesDisplay.textContent = results.taxes;
+    insuranceAmountDisplay.textContent = results.insuranceAmount;
+    hoaFeeDisplay.textContent = results.hoaFee;
   });
 
   // Handle calculation method change
@@ -97,7 +165,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const inputs = {
       price: parseFloat(priceInput.value) || 0,
       term: parseInt(termSelect.value) || 30,
-      rate: parseFloat(rateInput.value) || 0,
+      rate: parseFloat(interestRateBuydownSlider.value) || 0,
       tax: parseFloat(taxInput.value) || 0,
       insurance: parseFloat(insuranceInput.value) || 0,
       downPayment: parseFloat(downPaymentInput.value) || 0,
@@ -112,6 +180,93 @@ document.addEventListener("DOMContentLoaded", async () => {
     taxesDisplay.textContent = results.taxes;
     insuranceAmountDisplay.textContent = results.insuranceAmount;
     hoaFeeDisplay.textContent = results.hoaFee;
+  });
+
+  // Add event listener for the interest rate buydown slider
+  interestRateBuydownSlider.addEventListener("input", () => {
+    const desiredRate = parseFloat(interestRateBuydownSlider.value);
+    const originalRate = parseFloat(rateInput.value);
+    const term = parseInt(termSelect.value);
+    const purchasePriceText = purchasePriceDisplay.textContent.replace(
+      /[$,]/g,
+      "",
+    );
+    const principal = parseFloat(purchasePriceText) || 0; // Use 0 if parsing fails or text is empty/invalid
+
+    if (principal > 0) {
+      let buydownCost = 0;
+      const currentPurchasePriceText = purchasePriceDisplay.textContent.replace(
+        /[$,]/g,
+        "",
+      );
+      const currentPrincipal = parseFloat(currentPurchasePriceText) || 0;
+      if (currentPrincipal > 0) {
+        buydownCost = calculator.calculateInterestRateBuydown(
+          currentPrincipal,
+          originalRate,
+          desiredRate,
+          term,
+        );
+        totalBuydownCostDisplay.textContent = calculator.formatNumber(
+          buydownCost,
+        );
+      } else {
+        totalBuydownCostDisplay.textContent = "$0";
+      }
+
+      // Update the displayed percentage next to the slider
+      interestRateBuydownValue.textContent = `${desiredRate.toFixed(3)}%`; // Show precise rate
+
+      // Recalculate mortgage details with the new bought-down rate
+      const tax = parseFloat(taxInput.value) || 0;
+      const insurance = parseFloat(insuranceInput.value) || 0;
+      const hoaFee = parseFloat(hoaFeeInput.value) || 0;
+      const downPayment = parseFloat(downPaymentInput.value) || 0; // Although usually 0 for NACA
+
+      const recalculateInputs = {
+        term: term,
+        rate: desiredRate, // Use the bought-down rate
+        tax: tax,
+        insurance: insurance,
+        downPayment: downPayment,
+        hoaFee: hoaFee,
+        price: parseFloat(priceInput.value) || 0,
+      };
+
+      // Perform the recalculation using the calculator instance
+      const recalculatedResults = calculator.calculate(recalculateInputs);
+
+      // Update the display based on the calculation method
+      if (calculator.calcMethod === "price") {
+        // Price is fixed, update payment details
+        monthlyPaymentDisplay.textContent = recalculatedResults.monthlyPayment;
+        principalInterestDisplay.textContent =
+          recalculatedResults.principalInterest;
+        // Taxes, Insurance, HOA are usually recalculated based on price which is fixed here
+        // but let's update them from the results just in case logic changes
+        taxesDisplay.textContent = recalculatedResults.taxes;
+        insuranceAmountDisplay.textContent =
+          recalculatedResults.insuranceAmount;
+        hoaFeeDisplay.textContent = recalculatedResults.hoaFee;
+        // Purchase price remains the same
+        purchasePriceDisplay.textContent = calculator.formatNumber(
+          recalculateInputs.price,
+        );
+      } else { // calcMethod === 'payment'
+        // Payment is fixed, update price details
+        purchasePriceDisplay.textContent = recalculatedResults.purchasePrice;
+        principalInterestDisplay.textContent =
+          recalculatedResults.principalInterest;
+        taxesDisplay.textContent = recalculatedResults.taxes;
+        insuranceAmountDisplay.textContent =
+          recalculatedResults.insuranceAmount;
+        hoaFeeDisplay.textContent = recalculatedResults.hoaFee;
+        // Monthly payment remains the same
+        monthlyPaymentDisplay.textContent = calculator.formatNumber(
+          recalculateInputs.price,
+        );
+      }
+    }
   });
 
   // Add input validation and formatting

@@ -162,28 +162,35 @@ class MortgageCalculator {
   }
 
   calculate(inputs) {
+    // Remove buydownCost from destructuring as it's not used for P&I calculation anymore
     const { price, term, rate, tax, insurance, downPayment, hoaFee } = inputs;
 
     if (this.calcMethod === "payment") {
       const desiredMonthlyPayment = price;
 
+      // 1. Calculate max purchase price based on desired payment and *bought-down rate*
       const purchasePrice = this.calculateMaxPurchasePrice(
         desiredMonthlyPayment,
-        rate,
+        rate, // Use the potentially bought-down rate
         term,
         tax,
         insurance,
         hoaFee,
       );
 
+      // 2. Calculate Principal & Interest based on the full calculated principal
+      //    (purchasePrice - downPayment) using the bought-down rate.
+      const principal = purchasePrice - downPayment;
       const principalInterest = this.calculateBaseMonthlyPayment(
-        purchasePrice,
-        rate,
+        principal > 0 ? principal : 0, // Use full principal
+        rate, // Use the bought-down rate
         term,
       );
 
+      // 3. Calculate taxes based on the full purchase price
       const monthlyTax = this.calculateMonthlyTax(purchasePrice, tax);
 
+      // We display the original desired payment for consistency.
       return {
         monthlyPayment: this.formatNumber(desiredMonthlyPayment),
         purchasePrice: this.formatNumber(purchasePrice),
@@ -192,18 +199,22 @@ class MortgageCalculator {
         insuranceAmount: this.formatNumber(insurance),
         hoaFee: this.formatNumber(hoaFee),
       };
-    } else {
+    } else { // calcMethod === 'price'
       const purchasePrice = price;
       const principal = purchasePrice - downPayment;
 
+      // 1. Calculate Principal & Interest based on the full principal
+      //    using the bought-down rate.
       const principalInterest = this.calculateBaseMonthlyPayment(
-        principal,
-        rate,
+        principal > 0 ? principal : 0, // Use full principal
+        rate, // Use the bought-down rate
         term,
       );
 
+      // 2. Calculate taxes based on the full purchase price
       const monthlyTax = this.calculateMonthlyTax(purchasePrice, tax);
 
+      // 3. Calculate total monthly payment
       const totalMonthlyPayment = principalInterest + monthlyTax + insurance +
         hoaFee;
 
