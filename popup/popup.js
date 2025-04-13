@@ -29,7 +29,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const principalBuydownValue = document.getElementById(
     "principalBuydownValue",
   );
-  const totalBuydownCostDisplay = document.getElementById("totalBuydownCost");
+  const interestRateBuydownCostDisplay = document.getElementById(
+    "interestRateBuydownCost",
+  );
+  const principalBuydownCostDisplay = document.getElementById(
+    "principalBuydownCost",
+  );
 
   const { createClient } = supabase;
 
@@ -65,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       interestRateBuydownSlider.max = currentRate;
       interestRateBuydownSlider.value = currentRate;
       interestRateBuydownValue.textContent = `${currentRate}%`;
-      totalBuydownCostDisplay.textContent = "$0";
+      interestRateBuydownCostDisplay.textContent = "$0";
     }, 0);
   }
 
@@ -83,7 +88,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateInterestRateOptions(termSelect.value);
 
     // Reset buydown cost display immediately
-    totalBuydownCostDisplay.textContent = "$0";
+    interestRateBuydownCostDisplay.textContent = "$0";
+    principalBuydownCostDisplay.textContent = "$0";
 
     // Trigger a recalculation with the new defaults
     // Use a small timeout to ensure rateInput has updated from updateInterestRateOptions
@@ -126,7 +132,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     interestRateBuydownValue.textContent = `${newRate}%`;
 
     // Reset buydown cost display
-    totalBuydownCostDisplay.textContent = "$0";
+    interestRateBuydownCostDisplay.textContent = "$0";
+    principalBuydownCostDisplay.textContent = "$0";
 
     // Trigger a recalculation immediately with the new rate
     const inputs = {
@@ -207,11 +214,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           desiredRate,
           term,
         );
-        totalBuydownCostDisplay.textContent = calculator.formatNumber(
+        interestRateBuydownCostDisplay.textContent = calculator.formatNumber(
           buydownCost,
         );
       } else {
-        totalBuydownCostDisplay.textContent = "$0";
+        interestRateBuydownCostDisplay.textContent = "$0";
       }
 
       // Update the displayed percentage next to the slider
