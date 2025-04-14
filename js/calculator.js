@@ -68,6 +68,7 @@ class MortgageCalculator {
    * @param {number} taxRate The tax rate per $1000 of mortgage
    * @param {number} insurance The monthly insurance amount
    * @param {number} hoaFee The monthly HOA/Condo fee
+   * @param {number} [principalBuydown=0] The amount of principal to buy down
    * @returns {number} The max purchase price
    */
   calculateMaxPurchasePrice(
@@ -77,6 +78,7 @@ class MortgageCalculator {
     taxRate,
     insurance,
     hoaFee,
+    principalBuydown = 0,
   ) {
     const monthlyRate = rate / 100 / 12;
     const numberOfPayments = term * 12;
@@ -96,8 +98,11 @@ class MortgageCalculator {
       Math.abs(totalMonthlyPayment - desiredMonthlyPayment) > 0.01
     ) {
       guess = (low + high) / 2;
+      const loanAmount = guess - principalBuydown > 0
+        ? guess - principalBuydown
+        : 0;
       totalMonthlyPayment =
-        this.calculateBaseMonthlyPayment(guess, rate, term) +
+        this.calculateBaseMonthlyPayment(loanAmount, rate, term) +
         this.calculateMonthlyTax(guess, taxRate) +
         insurance +
         hoaFee;
@@ -161,9 +166,27 @@ class MortgageCalculator {
     return cost;
   }
 
+  /**
+   * Calculate the monthly payment, purchase price, principal & interest, taxes, insurance, and HOA/Condo fee.
+   * @param {number} price The purchase price of the house
+   * @param {number} term The term of the mortgage in years
+   * @param {number} rate The annual interest rate
+   * @param {number} tax The tax rate per $1000 of mortgage
+   * @param {number} insurance The monthly insurance amount
+   * @param {number} hoaFee The monthly HOA/Condo fee
+   * @param {number} [principalBuydown=0] The amount of principal to buy down
+   * @returns {Object} An object containing the monthly payment, purchase price, principal & interest, taxes, insurance, and HOA/Condo fee.
+   */
   calculate(inputs) {
-    // Remove buydownCost from destructuring as it's not used for P&I calculation anymore
-    const { price, term, rate, tax, insurance, downPayment, hoaFee } = inputs;
+    const {
+      price,
+      term,
+      rate,
+      tax,
+      insurance,
+      hoaFee,
+      principalBuydown = 0, // Default to 0 if not provided
+    } = inputs;
 
     if (this.calcMethod === "payment") {
       const desiredMonthlyPayment = price;
@@ -176,11 +199,12 @@ class MortgageCalculator {
         tax,
         insurance,
         hoaFee,
+        principalBuydown,
       );
 
       // 2. Calculate Principal & Interest based on the full calculated principal
       //    (purchasePrice - downPayment) using the bought-down rate.
-      const principal = purchasePrice - downPayment;
+      const principal = purchasePrice - principalBuydown;
       const principalInterest = this.calculateBaseMonthlyPayment(
         principal > 0 ? principal : 0, // Use full principal
         rate, // Use the bought-down rate
@@ -201,7 +225,7 @@ class MortgageCalculator {
       };
     } else { // calcMethod === 'price'
       const purchasePrice = price;
-      const principal = purchasePrice - downPayment;
+      const principal = purchasePrice - principalBuydown;
 
       // 1. Calculate Principal & Interest based on the full principal
       //    using the bought-down rate.
