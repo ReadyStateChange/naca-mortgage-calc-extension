@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "NACA Mortgage Calculator",
   "version": "1.0",
-  "description": "NACA Mortgage Calculator extension that helps you quickly determine affordable home purchase options. Calculate monthly payments based on purchase price or determine maximum purchase price from your desired monthly payment. Features include PITI breakdown, customizable loan terms, Geocode lookup for non-priority NACA members, and NACA-specific mortgage calculations for affordable homeownership.",
+  "description": " NACA-specific calculations for monthly mortgage payments or determine maximum home purchase price. Features PITI breakdown, custom loan terms, Geocode lookup for non-priority members.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
