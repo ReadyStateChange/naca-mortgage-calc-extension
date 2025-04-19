@@ -56,15 +56,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const { createClient } = supabase;
-
-  const supabaseUrl = "https://iqmfcfigrvrsuwqvlnfw.supabase.co";
   const supabaseAnonKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxbWZjZmlncnZyc3V3cXZsbmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MDkwMzksImV4cCI6MjA1OTE4NTAzOX0.gI7FtmbUg285dXN_QTJfVLAaKwm5tbKuxbZc3kOau0Q";
-  supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
   // Define interest rates based on term from results of getLatestMortgageRates. The first option is the base NACA rate, the second is always 1% higher.
-  const interestRates = await getLatestMortgageRates(supabaseClient);
+  const interestRates = await getLatestMortgageRates(supabaseAnonKey); // Pass anon key instead of client
 
   // Function to update interest rate options based on term
   function updateInterestRateOptions(term) {
@@ -464,7 +460,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       tractPercentDisplay.textContent = "-";
       yearDisplay.textContent = "-";
 
-      performMsaLookup(address)
+      performMsaLookup(address, supabaseAnonKey)
         .then((result) => {
           if (result) {
             statusDiv.textContent = `Data found for: ${
@@ -494,7 +490,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-async function performMsaLookup(address) {
+async function performMsaLookup(address, supabaseAnonKey) {
   try {
     const response = await fetch(
       "https://iqmfcfigrvrsuwqvlnfw.supabase.co/functions/v1/msaLookup",
@@ -503,8 +499,7 @@ async function performMsaLookup(address) {
         headers: {
           "Content-Type": "application/json",
           // Add your Supabase anon key here
-          "Authorization":
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxbWZjZmlncnZyc3V3cXZsbmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MDkwMzksImV4cCI6MjA1OTE4NTAzOX0.gI7FtmbUg285dXN_QTJfVLAaKwm5tbKuxbZc3kOau0Q",
+          "Authorization": `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify({ address }),
       },
@@ -526,42 +521,38 @@ async function performMsaLookup(address) {
 }
 
 // Look up latest mortgage rates
-// Assumes 'supabase' client is initialized and available globally or imported.
-async function getLatestMortgageRates(supabaseClient) {
+// Fetches rates from the Supabase Edge Function
+async function getLatestMortgageRates(supabaseAnonKey) {
   try {
-    // Fetch the latest row based on a timestamp column, e.g., 'created_at'
-    // Adjust 'created_at' if your column name is different.
-    const { data, error } = await supabaseClient
-      .from("naca_mortgage_rates")
-      .select("*") // Select all columns for the latest entry
-      .order("created_at", { ascending: false }) // Order by creation time, newest first
-      .limit(1) // Get only the latest row
-      .single(); // Expect a single object, throws error if 0 or >1 rows returned
+    const response = await fetch(
+      "https://iqmfcfigrvrsuwqvlnfw.supabase.co/functions/v1/get-naca-rates",
+      {
+        method: "GET", // Use GET as it's likely just retrieving data
+        headers: {
+          "Content-Type": "application/json",
+          // Add the Supabase anon key for authorization
+          "Authorization": `Bearer ${supabaseAnonKey}`,
+        },
+      },
+    );
 
-    if (error) {
-      console.error("Supabase fetch error:", error);
+    if (!response.ok) {
+      const errorData = await response.json();
       throw new Error(
-        error.message || "Failed to fetch rates from Supabase.",
+        errorData.error || `HTTP error! status: ${response.status}`,
       );
     }
 
+    const data = await response.json();
+
     if (!data) {
-      console.warn("No mortgage rate data found in the database.");
+      console.warn("No mortgage rate data received from the function.");
       // Return null or a default object, depending on how you want to handle this
-      return null;
+      // Returning default rates might be safer to avoid breaking the UI
+      return { "15": [5, 6], "20": [5.5, 6.5], "30": [6, 7] }; // Example defaults
     }
 
-    // Return the data from the latest row.
-    // You might need to extract specific rate columns from the 'data' object later.
-    // e.g., return { "15": data.rate_15yr, "20": data.rate_20yr, "30": data.rate_30yr };
-    // Data comes looking like this: {
-    //     "id": 1,
-    //     "thirty_year_rate": 6,
-    //     "twenty_year_rate": 5.5,
-    //     "fifteen_year_rate": 5.25,
-    //     "updated_at": "2025-04-12T20:19:57.261619+00:00",
-    //     "created_at": "2025-04-12T20:19:57.261619+00:00"
-    // }
+    // Return the data formatted as expected by the rest of the script
     return {
       "15": [data.fifteen_year_rate, data.fifteen_year_rate + 1],
       "20": [data.twenty_year_rate, data.twenty_year_rate + 1],
@@ -569,6 +560,9 @@ async function getLatestMortgageRates(supabaseClient) {
     };
   } catch (error) {
     console.error("Failed to fetch latest mortgage rates:", error);
-    throw new Error("Failed to fetch latest mortgage rates from the server.");
+    // Provide default rates or re-throw, depending on desired error handling
+    // Returning defaults here to prevent breaking the UI entirely
+    console.warn("Returning default rates due to fetch error.");
+    return { "15": [5, 6], "20": [5.5, 6.5], "30": [6, 7] }; // Example defaults
   }
 }

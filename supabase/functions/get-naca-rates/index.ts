@@ -7,9 +7,22 @@ const NACA_CALCULATOR_URL = "https://www.naca.com/mortgage-calculator/";
 const rateRegex =
   /function\s+fillRate\s*\(\)\s*\{\s*var\s+thirtyYearRate\s*=\s*"([^"]+)";\s*var\s+twentyYearRate\s*=\s*"([^"]+)";\s*var\s+fifteenYearRate\s*=\s*"([^"]+)";/;
 
-serve(async (_req) => {
+// Helper function for CORS headers
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*", // Allow all origins (adjust for production if needed)
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type", // Allow necessary headers
+  "Access-Control-Allow-Methods": "GET, OPTIONS", // Allow GET and OPTIONS methods
+};
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
-    // Initialize Supabase client early for cache check
+    // Initialize Supabase client
     const supabaseUrl = Deno.env.get("NACA_APP_SUPABASE_URL");
     const supabaseRoleKey = Deno.env.get("NACA_APP_SUPABASE_ROLE_KEY");
     if (!supabaseUrl) {
@@ -37,7 +50,7 @@ serve(async (_req) => {
       if (Date.now() - lastDate.getTime() < 24 * 60 * 60 * 1000) {
         console.log("Returning cached rates:", latestRate);
         return new Response(JSON.stringify(latestRate), {
-          headers: { "Content-Type": "application/json" },
+          headers: { ...corsHeaders, "Content-Type": "application/json" }, // Include CORS headers
         });
       }
     }
@@ -65,16 +78,32 @@ serve(async (_req) => {
       fifteenYearRate: match[3].replace("%", ""),
     };
 
-    // Convert rates to numbers for database insertion
-    // Ensure your table columns match these names (e.g., thirty_year_rate)
+    // Convert rates to numbers
     const ratesNumeric = {
       thirty_year_rate: parseFloat(rateStrings.thirtyYearRate),
       twenty_year_rate: parseFloat(rateStrings.twentyYearRate),
       fifteen_year_rate: parseFloat(rateStrings.fifteenYearRate),
     };
 
-    // Insert data into the database
-    const { data, error: dbError } = await supabase
+    // Check if latestRate exists and if the rates are the same
+    if (
+      latestRate &&
+      latestRate.thirty_year_rate === ratesNumeric.thirty_year_rate &&
+      latestRate.twenty_year_rate === ratesNumeric.twenty_year_rate &&
+      latestRate.fifteen_year_rate === ratesNumeric.fifteen_year_rate
+    ) {
+      console.log("Rates haven't changed. Returning cached rates:", latestRate);
+      return new Response(JSON.stringify(latestRate), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Rates are different or no previous rate exists, insert new data
+    console.log(
+      "Rates have changed or no previous data. Saving new rates:",
+      ratesNumeric,
+    );
+    const { data: insertedData, error: dbError } = await supabase
       .from("naca_mortgage_rates") // Your table name
       .insert([ratesNumeric]) // Insert the numeric rates
       .select() // Optionally return the inserted data
@@ -85,18 +114,20 @@ serve(async (_req) => {
       // Add specific check for RLS violation if possible, though error message might vary
       if (dbError.message.includes("permission denied")) {
         console.warn(
-          "Potential RLS issue: Check RLS policy on 'naca_mortgage_rates' allows INSERT for 'anon' role.",
+          "Potential RLS issue: Check RLS policy on 'naca_mortgage_rates' allows INSERT.",
         );
       }
       throw new Error(`Database error: ${dbError.message}`);
     }
 
-    console.log("Rates saved successfully:", data);
+    console.log("Rates saved successfully:", insertedData);
 
-    // Return the saved rates (or a success message)
+    // Return the newly saved rates
     return new Response(
-      JSON.stringify(data ?? { message: "Rates saved successfully" }),
-      { headers: { "Content-Type": "application/json" } },
+      JSON.stringify(insertedData ?? { message: "Rates saved successfully" }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (error) {
     console.error("Error in function:", error); // Log the specific error
@@ -105,7 +136,10 @@ serve(async (_req) => {
       : "An unknown error occurred";
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }, // Include CORS headers
+      },
     );
   }
 });
