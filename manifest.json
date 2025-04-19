@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "NACA Mortgage Calculator",
+  "name": "NACA Mortgage Calculator and Geocode Lookup",
   "version": "1.0",
-  "description": " NACA-specific calculations for monthly mortgage payments or determine maximum home purchase price. Features PITI breakdown, custom loan terms, Geocode lookup for non-priority members.",
+  "description": "NACA-specific mortgage calculations, PITI breakdown, custom terms, Geocode lookup.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
