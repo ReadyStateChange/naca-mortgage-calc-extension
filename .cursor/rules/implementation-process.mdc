@@ -1,0 +1,50 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+### 1. Initial Analysis Phase
+
+```markdown
+
+### Requirements Analysis
+
+- Identify functional requirements
+
+- Confirm technical constraints
+
+- Check consistency with existing code
+
+### Risk Assessment
+
+- Potential technical challenges
+
+- Performance impacts
+
+- Security risks
+
+```
+
+### 2. Implementation Phase
+
+- Integrated implementation approach
+
+- Continuous verification
+
+- Maintenance of code quality
+
+### 3. Verification Phase
+
+- Unit testing
+
+- Integration testing
+
+- Performance testing
+
+### 4. Final Confirmation
+
+- Consistency with requirements
+
+- Code quality
+
+- Documentation completeness

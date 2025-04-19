@@ -490,6 +490,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+// Look up MSA income data
 async function performMsaLookup(address, supabaseAnonKey) {
   try {
     const response = await fetch(

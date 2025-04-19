@@ -1,0 +1,38 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+
+### 1. Code Quality
+
+- Strict TypeScript type checking
+
+- Full compliance with ESLint rules
+
+- Consistency maintenance
+
+### 2. Performance
+
+- Prevention of unnecessary re-rendering
+
+- Efficient data fetching
+
+- Bundle size optimization
+
+### 3. Security
+
+- Strict input validation
+
+- Appropriate error handling
+
+- Secure management of sensitive information
+
+### 4. UI/UX
+
+- Responsive design
+
+- Accessibility compliance
+
+- Consistent design system
