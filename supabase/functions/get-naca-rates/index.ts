@@ -9,6 +9,39 @@ const rateRegex =
 
 serve(async (_req) => {
   try {
+    // Initialize Supabase client early for cache check
+    const supabaseUrl = Deno.env.get("NACA_APP_SUPABASE_URL");
+    const supabaseRoleKey = Deno.env.get("NACA_APP_SUPABASE_ROLE_KEY");
+    if (!supabaseUrl) {
+      throw new Error("Missing environment variable: NACA_APP_SUPABASE_URL");
+    }
+    if (!supabaseRoleKey) {
+      throw new Error(
+        "Missing environment variable: NACA_APP_SUPABASE_ROLE_KEY",
+      );
+    }
+    const supabase = createClient(supabaseUrl, supabaseRoleKey);
+
+    // Check the most recent rate entry
+    const { data: latestRate, error: latestError } = await supabase
+      .from("naca_mortgage_rates")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+    if (latestError) {
+      console.error("Error fetching latest rate:", latestError);
+    } else if (latestRate) {
+      const lastDate = new Date(latestRate.created_at);
+      // If last fetch was under 24 hours ago, return cached entry
+      if (Date.now() - lastDate.getTime() < 24 * 60 * 60 * 1000) {
+        console.log("Returning cached rates:", latestRate);
+        return new Response(JSON.stringify(latestRate), {
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Fetch the HTML content from the NACA website
     const response = await fetch(NACA_CALCULATOR_URL);
     if (!response.ok) {
@@ -39,24 +72,6 @@ serve(async (_req) => {
       twenty_year_rate: parseFloat(rateStrings.twentyYearRate),
       fifteen_year_rate: parseFloat(rateStrings.fifteenYearRate),
     };
-
-    // Initialize Supabase client
-    // Ensure SUPABASE_URL and SUPABASE_ROLEKEY are set as env vars
-    // IMPORTANT: RLS must be enabled on 'naca_mortgage_rates' and allow inserts for the 'anon' role.
-    // Use custom env var names locally to avoid Supabase CLI restriction.
-    const supabaseUrl = Deno.env.get("NACA_APP_SUPABASE_URL");
-    const supabaseRoleKey = Deno.env.get("NACA_APP_SUPABASE_ROLE_KEY");
-
-    if (!supabaseUrl) {
-      throw new Error("Missing environment variable: NACA_APP_SUPABASE_URL");
-    }
-    if (!supabaseRoleKey) {
-      throw new Error(
-        "Missing environment variable: NACA_APP_SUPABASE_ROLE_KEY",
-      );
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseRoleKey);
 
     // Insert data into the database
     const { data, error: dbError } = await supabase
