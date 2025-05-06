@@ -62,13 +62,13 @@
 
 - Execute processes only within the scope of instructions, without adding extra features or operations
 
-- Do not edit composer.json without my consent
-
-- Unit Tests usually extend `Vimeo\Test\Framework\VimeoUnitTest` or `Vimeo\Test\Framework\API\VimeoAPIUnitTest` for PHP tests
+- Do not edit any package management files without my consent
 
 
 
-5. **Continuous Feedback**
+
+
+1. **Continuous Feedback**
 
 - Regularly report implementation progress
 

@@ -304,10 +304,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Update principal buydown slider max value after recalculation
       updatePrincipalBuydownSliderMax();
-
-      // Also update the interest rate buydown cost, as it depends on the potentially changed principal
-      const desiredInterestRate = parseFloat(interestRateBuydownSlider.value);
-      const originalInterestRate = parseFloat(rateInput.value);
     }
   });
 
