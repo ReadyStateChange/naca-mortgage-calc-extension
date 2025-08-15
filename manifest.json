@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NACA Mortgage Calculator and Geocode Lookup",
-  "version": "1.0",
+  "version": "1.1",
   "description": "NACA-specific mortgage calculations, PITI breakdown, custom terms, Geocode lookup.",
   "icons": {
     "16": "icons/icon16.png",

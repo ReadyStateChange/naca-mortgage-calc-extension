@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      NACA Mortgage Calculator - Free Online Tool & Chrome Extension
+    </title>
+    <meta
+      name="description"
+      content="Free NACA mortgage calculator with PITI breakdown, geocode lookup, and buydown options. Available as a website and Chrome extension for seamless real estate browsing."
+    />
+
+    <!-- Open Graph tags -->
+    <meta
+      property="og:title"
+      content="NACA Mortgage Calculator and Geocode Lookup - Free Online Tool"
+    />
+    <meta
+      property="og:description"
+      content="Calculate NACA mortgage payments with no down payment required. Includes property tax, insurance, and HOA calculations. Geocode lookup for MSA median family income and tract information."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://your-domain.com" />
+
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="icon48.png" type="image/png" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <div class="logo">
+            <img src="icon48.png" alt="NACA Calculator" class="logo-img" />
+            <h1>NACA Mortgage Calculator and Geocode Lookup</h1>
+          </div>
+          <nav class="nav">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#calculator" class="nav-link">Calculator</a>
+            <a href="#msa-lookup" class="nav-link">MSA Lookup</a>
+            <a href="#extension" class="nav-link">Extension</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h2>Calculate Your NACA Mortgage Payment and Do a Geocode Lookup</h2>
+          <p class="hero-subtitle">
+            PITI breakdown • Geocode lookup • Buydown options
+          </p>
+          <div class="hero-cta">
+            <a href="#calculator" class="btn btn-primary">Use Calculator</a>
+            <a
+              href="https://chromewebstore.google.com/detail/hbdlcdeikllnheobkpnfhameoclhmjli"
+              class="btn btn-secondary"
+              target="_blank"
+              rel="noopener"
+            >
+              <img src="chrome-icon.svg" alt="Chrome" class="btn-icon" />
+              Get Chrome Extension
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+      <div class="container">
+        <h2>Why Choose Our NACA Calculator?</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🏠</div>
+            <h3>NACA-Specific</h3>
+            <p>
+              Built specifically for NACA mortgages with no down payment
+              requirements and accurate PITI calculations.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📍</div>
+            <h3>Geocode Lookup</h3>
+            <p>
+              Instantly check MSA median family income and tract information
+              without visiting external sites.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">💰</div>
+            <h3>Buydown Options</h3>
+            <p>
+              Calculate interest rate and principal buydown costs to optimize
+              your mortgage terms.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Real-time Results</h3>
+            <p>
+              Get instant calculations as you adjust parameters, with detailed
+              PITI breakdown.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Calculator Section -->
+    <section id="calculator" class="calculator-section">
+      <div class="container">
+        <!-- Insert the existing calculator HTML here -->
+        <div class="calculator-wrapper">
+          <div class="calculator">
+            <h2>NACA Mortgage Calculator</h2>
+
+            <div class="calc-mode">
+              <label>
+                <input type="radio" name="calcMethod" value="payment" checked />
+                Enter your desired monthly payment(PITI)
+              </label>
+              <label>
+                <input type="radio" name="calcMethod" value="price" />
+                Enter Desired Purchase Price
+              </label>
+            </div>
+
+            <div class="payment-term">
+              <div class="input-group">
+                <label for="price">Purchase Price / Payment</label>
+                <input type="text" id="price" placeholder="Enter amount" />
+              </div>
+
+              <div class="input-group">
+                <label for="term">Loan Term</label>
+                <select id="term">
+                  <option value="30">30 Years</option>
+                  <option value="20">20 Years</option>
+                  <option value="15">15 Years</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="rate-tax-group">
+              <div class="input-group">
+                <label for="rate">Interest Rate (%)</label>
+                <select id="rate"></select>
+              </div>
+
+              <div class="input-group">
+                <label for="tax" title="The tax rate is per $1000 of mortgage">
+                  Property Tax <span class="tooltip-icon">?</span>
+                </label>
+                <select id="tax" title="The tax rate is per $1000 of mortgage">
+                  <option value="5">5%</option>
+                  <option value="5.5">5.5%</option>
+                  <option value="6">6%</option>
+                  <option value="6.5">6.5%</option>
+                  <option value="7">7%</option>
+                  <option value="7.5">7.5%</option>
+                  <option value="8">8%</option>
+                  <option value="8.5">8.5%</option>
+                  <option value="9">9%</option>
+                  <option value="9.5">9.5%</option>
+                  <option value="10">10%</option>
+                  <option value="10.5">10.5%</option>
+                  <option value="11">11%</option>
+                  <option value="11.5">11.5%</option>
+                  <option value="12">12%</option>
+                  <option value="12.5">12.5%</option>
+                  <option value="13">13%</option>
+                  <option value="13.5">13.5%</option>
+                  <option value="14">14%</option>
+                  <option value="14.5">14.5%</option>
+                  <option value="15">15%</option>
+                  <option value="15.5">15.5%</option>
+                  <option value="16">16%</option>
+                  <option value="16.5">16.5%</option>
+                  <option value="17">17%</option>
+                  <option value="17.5">17.5%</option>
+                  <option value="18">18%</option>
+                  <option value="18.5">18.5%</option>
+                  <option value="19">19%</option>
+                  <option value="19.5">19.5%</option>
+                  <option value="20">20%</option>
+                  <option value="20.5">20.5%</option>
+                  <option value="21">21%</option>
+                  <option value="21.5">21.5%</option>
+                  <option value="22">22%</option>
+                  <option value="22.5">22.5%</option>
+                  <option value="23">23%</option>
+                  <option value="23.5">23.5%</option>
+                  <option value="24">24%</option>
+                  <option value="24.5">24.5%</option>
+                  <option value="25">25%</option>
+                  <option value="25.5">25.5%</option>
+                  <option value="26">26%</option>
+                  <option value="26.5">26.5%</option>
+                  <option value="27">27%</option>
+                  <option value="27.5">27.5%</option>
+                  <option value="28">28%</option>
+                  <option value="28.5">28.5%</option>
+                  <option value="29">29%</option>
+                  <option value="29.5">29.5%</option>
+                  <option value="30">30%</option>
+                  <option value="30.5">30.5%</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="additional-costs-group">
+              <div class="input-group">
+                <label for="insurance">Insurance (Monthly)</label>
+                <input
+                  type="number"
+                  id="insurance"
+                  placeholder="Enter insurance amount"
+                />
+              </div>
+
+              <div class="input-group">
+                <label for="hoaFee">HOA/Condo Fee (Monthly)</label>
+                <input
+                  type="number"
+                  id="hoaFee"
+                  placeholder="Enter HOA/Condo fee"
+                />
+              </div>
+
+              <div class="input-group">
+                <label
+                  for="downPayment"
+                  title="NACA doesn't require a down payment!"
+                  >Down Payment <span class="tooltip-icon">?</span></label
+                >
+                <input
+                  type="text"
+                  id="downPayment"
+                  placeholder="NACA doesn't require a down payment!"
+                  value="0"
+                  disabled
+                />
+              </div>
+            </div>
+
+            <div class="buydown-section">
+              <h3>Buydown Options</h3>
+
+              <div class="input-group">
+                <label
+                  for="interestRateBuydown"
+                  title="Reduce your interest rate"
+                >
+                  Interest Rate Buydown <span class="tooltip-icon">?</span>
+                </label>
+                <div class="slider-container">
+                  <input
+                    type="range"
+                    id="interestRateBuydown"
+                    min="0"
+                    max="0"
+                    step="0.125"
+                    value="0"
+                  />
+                  <span id="interestRateBuydownValue">0%</span>
+                </div>
+              </div>
+
+              <div class="buydown-result">
+                <div class="result-item">
+                  <span>Interest Rate Buydown Cost:</span>
+                  <span id="interestRateBuydownCost">$0</span>
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label for="principalBuydown" title="Reduce your principal">
+                  Principal Buydown <span class="tooltip-icon">?</span>
+                </label>
+                <div class="slider-container">
+                  <input
+                    type="range"
+                    id="principalBuydown"
+                    min="0"
+                    step="1000"
+                    value="0"
+                  />
+                  <span id="principalBuydownValue">$0</span>
+                </div>
+              </div>
+
+              <div class="buydown-result">
+                <div class="result-item">
+                  <span>Principal Buydown Cost:</span>
+                  <span id="principalBuydownCost">$0</span>
+                </div>
+              </div>
+            </div>
+
+            <button id="calculate">Calculate</button>
+
+            <div class="results">
+              <div class="result-item">
+                <span>Monthly Payment:</span>
+                <span id="monthlyPayment">$0</span>
+              </div>
+              <div class="result-item">
+                <span>Purchase Price:</span>
+                <span id="purchasePrice">$0</span>
+              </div>
+              <div class="result-item">
+                <span>Principal & Interest:</span>
+                <span id="principalInterest">$0</span>
+              </div>
+              <div class="result-item">
+                <span>Taxes:</span>
+                <span id="taxes">$0</span>
+              </div>
+              <div class="result-item">
+                <span>Insurance:</span>
+                <span id="insuranceAmount">$0</span>
+              </div>
+              <div class="result-item">
+                <span>HOA/Condo Fee:</span>
+                <span id="hoaFeeDisplay">$0</span>
+              </div>
+            </div>
+          </div>
+          <div class="msa-lookup-container" id="msa-lookup">
+            <h2>MSA Lookup</h2>
+            <div class="input-group">
+              <label for="address">Enter Address</label>
+              <input
+                type="text"
+                id="address"
+                placeholder="Enter full address"
+              />
+            </div>
+            <button id="lookup-btn" class="btn btn-primary">Lookup MSA</button>
+
+            <div class="msa-results">
+              <div id="msaStatus" class="status-message"></div>
+              <div class="result-item">
+                <span>MSA Median Family Income:</span>
+                <span id="msaResultMsaIncome">-</span>
+              </div>
+              <div class="result-item">
+                <span>Tract Median Family Income:</span>
+                <span id="msaResultTractIncome">-</span>
+              </div>
+              <div class="result-item">
+                <span>Tract Percent of MSA:</span>
+                <span id="msaResultTractPercent">-</span>
+              </div>
+              <div class="result-item">
+                <span>Year:</span>
+                <span id="msaResultYear">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Extension Promotion -->
+    <section id="extension" class="extension-promo">
+      <div class="container">
+        <div class="extension-content">
+          <div class="extension-text">
+            <h2>Get the Chrome Extension</h2>
+            <p>
+              Take the NACA calculator with you while browsing Zillow, Redfin,
+              and other real estate sites. No more switching tabs!
+            </p>
+            <ul class="extension-benefits">
+              <li>✓ Works on Zillow, Redfin, Homes.com</li>
+              <li>✓ Instant geocode lookup</li>
+              <li>✓ No tab switching required</li>
+              <li>✓ Always up-to-date rates</li>
+            </ul>
+            <a
+              href="https://chromewebstore.google.com/detail/hbdlcdeikllnheobkpnfhameoclhmjli"
+              class="btn btn-primary btn-large"
+              target="_blank"
+              rel="noopener"
+            >
+              Add to Chrome - It's Free!
+            </a>
+          </div>
+          <div class="extension-image">
+            <!-- <img
+              src="extension-screenshot.png"
+              alt="NACA Calculator Extension Screenshot"
+              class="screenshot"
+            /> -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq">
+      <div class="container">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-grid">
+          <div class="faq-item">
+            <h3>What is NACA?</h3>
+            <p>
+              NACA (Neighborhood Assistance Corporation of America) offers
+              mortgages with no down payment, no closing costs, and no PMI for
+              qualified buyers.
+            </p>
+          </div>
+          <div class="faq-item">
+            <h3>How accurate are the calculations?</h3>
+            <p>
+              Our calculator uses the same formulas as NACA's official
+              calculator and includes real-time interest rates updated
+              regularly.
+            </p>
+          </div>
+          <div class="faq-item">
+            <h3>What's the difference between the website and extension?</h3>
+            <p>
+              Both have identical functionality. The extension lets you use the
+              calculator while browsing real estate sites without switching
+              tabs.
+            </p>
+          </div>
+          <div class="faq-item">
+            <h3>Is my data secure?</h3>
+            <p>
+              Yes, all calculations are performed locally in your browser. No
+              personal financial information is stored or transmitted.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h4>NACA Calculator</h4>
+            <p>
+              Free mortgage calculator specifically designed for NACA home
+              buyers.
+            </p>
+          </div>
+          <div class="footer-section">
+            <h4>Links</h4>
+            <ul>
+              <li>
+                <a href="https://www.naca.com" target="_blank" rel="noopener"
+                  >Official NACA Website</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://geomap.ffiec.gov/ffiecgeomap/"
+                  target="_blank"
+                  rel="noopener"
+                  >FFIEC Geocode Tool</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Contact</h4>
+            <p>Email: naca-helper [at] readystatechange.com</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>
+            &copy; 2025 NACA Mortgage Calculator and Geocode Lookup. Not
+            affiliated with NACA.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../js/calculator.js"></script>
+    <script src="website.js"></script>
+  </body>
+</html>
