@@ -1,5 +1,6 @@
 ---
 alwaysApply: false
+description: "Implementation process protocol for code development and testing"
 ---
 ### 1. Initial Analysis Phase
 

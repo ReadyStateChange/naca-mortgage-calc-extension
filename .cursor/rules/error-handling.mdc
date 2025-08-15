@@ -1,5 +1,6 @@
 ---
 alwaysApply: false
+description: "Error handling protocol for debugging and problem resolution"
 ---
 ## Error Handling Protocol
 
