@@ -140,7 +140,11 @@ class MortgageCalculator {
       return 0;
     }
 
-    const rateDifference = rate - desiredRate;
+    // Enforce a maximum buydown of 1.5%
+    const MAX_RATE_BUYDOWN = 1.5;
+    const minAllowedRate = rate - MAX_RATE_BUYDOWN;
+    const effectiveDesiredRate = Math.max(desiredRate, minAllowedRate);
+    const rateDifference = rate - effectiveDesiredRate;
 
     if (rateDifference <= 0) {
       return 0; // No cost if the desired rate is not lower

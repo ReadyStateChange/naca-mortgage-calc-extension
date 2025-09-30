@@ -5,3 +5,4 @@
 - [ ] Add local storage in website version
 - [ ] Update the function that gets latest rates to be a supabase cron job
 - [ ] Update the supabase function that retrieves the latest rate to just read from DB table
+- [ ] Add radio button to select between priority member and non-priority member

@@ -80,6 +80,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => {
       const currentRate = parseFloat(rateInput.value);
       interestRateBuydownSlider.max = currentRate;
+      // Enforce max buydown of 1.5%
+      const minAllowedRate = Math.max(0, currentRate - 1.5);
+      interestRateBuydownSlider.min = minAllowedRate;
+      interestRateBuydownSlider.step = "0.001";
       interestRateBuydownSlider.value = currentRate;
       interestRateBuydownValue.textContent = `${currentRate}%`;
       interestRateBuydownCostDisplay.textContent = "$0";
@@ -122,6 +126,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   rateInput.addEventListener("change", () => {
     const newRate = parseFloat(rateInput.value);
     interestRateBuydownSlider.max = newRate;
+    // Enforce max buydown of 1.5%
+    interestRateBuydownSlider.min = Math.max(0, newRate - 1.5);
+    interestRateBuydownSlider.step = "0.001";
     interestRateBuydownSlider.value = newRate;
     interestRateBuydownValue.textContent = `${newRate}%`;
     interestRateBuydownCostDisplay.textContent = "$0";
@@ -176,7 +183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   interestRateBuydownSlider.addEventListener("input", () => {
-    const desiredRate = parseFloat(interestRateBuydownSlider.value);
+    let desiredRate = parseFloat(interestRateBuydownSlider.value);
     const originalRate = parseFloat(rateInput.value);
     const term = parseInt(termSelect.value);
     const purchasePriceText = purchasePriceDisplay.textContent.replace(
@@ -204,7 +211,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else {
         interestRateBuydownCostDisplay.textContent = "$0";
       }
-      interestRateBuydownValue.textContent = `${desiredRate.toFixed(3)}%`;
+      // Apply 1.5% buydown cap and update the displayed percentage
+      const minAllowedRate = Math.max(0, originalRate - 1.5);
+      let capReached = false;
+      if (desiredRate < minAllowedRate) {
+        desiredRate = minAllowedRate;
+        interestRateBuydownSlider.value = String(minAllowedRate);
+        capReached = true;
+      }
+      interestRateBuydownValue.textContent = capReached
+        ? `${desiredRate.toFixed(3)}% (1.5% cap reached)`
+        : `${desiredRate.toFixed(3)}%`;
 
       const tax = parseFloat(taxInput.value) || 0;
       const insurance = parseFloat(insuranceInput.value) || 0;

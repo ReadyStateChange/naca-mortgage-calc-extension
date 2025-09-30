@@ -100,6 +100,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => {
       const currentRate = parseFloat(rateInput.value);
       interestRateBuydownSlider.max = currentRate;
+      // Enforce max buydown of 1.5%
+      const minAllowedRate = Math.max(0, currentRate - 1.5);
+      interestRateBuydownSlider.min = minAllowedRate;
+      interestRateBuydownSlider.step = "0.001";
       interestRateBuydownSlider.value = currentRate;
       interestRateBuydownValue.textContent = `${currentRate}%`;
       interestRateBuydownCostDisplay.textContent = "$0";
@@ -155,6 +159,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Update the buydown slider's max and current value
     interestRateBuydownSlider.max = newRate;
+    // Enforce max buydown of 1.5%
+    interestRateBuydownSlider.min = Math.max(0, newRate - 1.5);
+    interestRateBuydownSlider.step = "0.001";
     interestRateBuydownSlider.value = newRate;
     interestRateBuydownValue.textContent = `${newRate}%`;
 
@@ -211,7 +218,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Add event listener for the interest rate buydown slider
   interestRateBuydownSlider.addEventListener("input", () => {
-    const desiredRate = parseFloat(interestRateBuydownSlider.value);
+    let desiredRate = parseFloat(interestRateBuydownSlider.value);
     const originalRate = parseFloat(rateInput.value);
     const term = parseInt(termSelect.value);
     const purchasePriceText = purchasePriceDisplay.textContent.replace(
@@ -241,8 +248,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         interestRateBuydownCostDisplay.textContent = "$0";
       }
 
-      // Update the displayed percentage next to the slider
-      interestRateBuydownValue.textContent = `${desiredRate.toFixed(3)}%`; // Show precise rate
+      // Apply 1.5% buydown cap and update the displayed percentage
+      const minAllowedRate = Math.max(0, originalRate - 1.5);
+      let capReached = false;
+      if (desiredRate < minAllowedRate) {
+        desiredRate = minAllowedRate;
+        interestRateBuydownSlider.value = String(minAllowedRate);
+        capReached = true;
+      }
+      interestRateBuydownValue.textContent = capReached
+        ? `${desiredRate.toFixed(3)}% (1.5% cap reached)`
+        : `${desiredRate.toFixed(3)}%`; // Show precise rate
 
       // Recalculate mortgage details with the new bought-down rate
       const tax = parseFloat(taxInput.value) || 0;
@@ -252,7 +268,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const recalculateInputs = {
         term: term,
-        rate: desiredRate, // Use the bought-down rate
+        rate: desiredRate, // Use the (possibly capped) bought-down rate
         tax: tax,
         insurance: insurance,
         hoaFee: hoaFee,
