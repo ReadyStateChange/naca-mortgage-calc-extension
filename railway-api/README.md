@@ -1,6 +1,6 @@
-# NACA Calculator API
+# NACA Calculator API + Website Server
 
-Bun server providing mortgage rates and MSA income data for the NACA Calculator extension and website.
+Bun server providing mortgage rates, MSA income data, and serving the static website for the NACA Calculator.
 
 ## Setup
 
@@ -22,6 +22,21 @@ PORT=3000
 NODE_ENV=development
 ```
 
+## Architecture
+
+This server:
+- Serves landing page from `railway-api/public/index.html`
+- Serves all static website files from the `public/` directory
+- Provides REST API endpoints under `/api/*`
+- Uses same-origin for website/API (no CORS issues)
+- Deploys to Railway with automatic updates
+
 ## Endpoints
 
-- `GET /api/rates`
+### API Routes
+- `GET /api/rates` - Returns latest NACA mortgage rates
+- `POST /api/msa-lookup` - Geocodes address and returns MSA income data
+
+### Static Routes
+- `GET /` - Serves index.html (website homepage)
+- `GET /<path>` - Serves static files (CSS, JS, images) from `public/`

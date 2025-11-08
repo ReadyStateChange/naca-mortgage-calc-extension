@@ -16,10 +16,10 @@ I've successfully implemented **Phase 2** (Bun Server Development) and **Phase 4
 
 ### 2. Updated Frontend Files
 - ✅ `popup/popup.js` - Extension updated for Railway API
-- ✅ `website/website.js` - Website updated for Railway API
+- ✅ `railway-api/public/` - Landing page and website files (edit directly here)
 - ✅ `js/api-config.js` - New centralized config file
 - ✅ Removed Supabase authentication dependencies
-- ✅ Added TODO markers for Railway URL updates
+- ⚠️ `website/` directory is deprecated and will be removed
 
 ### 3. Documentation
 - ✅ `MIGRATION_STATUS.md` - Complete step-by-step guide
@@ -69,13 +69,19 @@ You now have a fully working stack on **Neon + Railway + Bun**. Use this checkli
 
 ```
 naca-app/
-├── railway-api/               [NEW - Bun REST API]
+├── railway-api/               [NEW - Bun REST API + Static Server]
 │   ├── src/
 │   │   ├── index.ts           [Main server]
 │   │   ├── routes/            [API endpoints]
 │   │   ├── services/          [DB, scraper, rate logic]
 │   │   ├── scripts/           [Cron job]
 │   │   └── utils/             [CORS helpers]
+│   ├── public/                [Static files - LANDING PAGE SERVED FROM HERE]
+│   │   ├── index.html         [Website landing page]
+│   │   ├── styles.css
+│   │   ├── calculator.js
+│   │   ├── website.js
+│   │   └── icons/
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── README.md
@@ -83,8 +89,7 @@ naca-app/
 ├── popup/
 │   └── popup.js               [UPDATED - Uses Railway API]
 │
-├── website/
-│   └── website.js             [UPDATED - Uses Railway API]
+├── website/                   [DEPRECATED - Will be removed]
 │
 ├── js/
 │   └── api-config.js          [NEW - API configuration]
@@ -109,6 +114,7 @@ bun install
 cp .env.example .env
 # Edit .env and add your Neon DATABASE_URL
 bun run dev
+# Landing page served from railway-api/public/index.html at http://localhost:3000
 ```
 
 ### 3. In another terminal, test endpoints:

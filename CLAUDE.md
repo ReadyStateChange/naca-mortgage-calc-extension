@@ -9,8 +9,8 @@ This is a NACA (Neighborhood Assistance Corporation of America) Mortgage Calcula
 ### Core Architecture
 
 - **Browser Extension**: Chrome Manifest V3 extension with popup interface
-- **Website Version**: Standalone web application deployable to GitHub Pages
-- **Backend Services**: Railway-hosted Bun server with REST API
+- **Website Version**: Standalone web application served from Railway (same-origin with API)
+- **Backend Services**: Railway-hosted Bun server with REST API + static file serving
 - **Data Storage**: Neon PostgreSQL database for mortgage rates and MSA income data
 - **Cron Jobs**: Railway Cron service for daily rate updates (6 AM UTC)
 
@@ -24,11 +24,13 @@ This is a NACA (Neighborhood Assistance Corporation of America) Mortgage Calcula
 
 2. **Extension Popup** (`popup/`) - Browser extension interface with dual calculation modes
 
-3. **Website Interface** (`website/`) - Standalone web version with MSA lookup functionality
+3. **Website Interface** (`railway-api/public/`) - Standalone web version with MSA lookup functionality
 
-4. **Railway API** (`railway-api/`):
+4. **Railway API + Static Server** (`railway-api/`):
    - `GET /api/rates`: Returns latest mortgage rates from Neon DB
    - `POST /api/msa-lookup`: Geocodes addresses and retrieves MSA income data
+   - `GET /`: Serves static website (index.html and assets from `public/`)
+   - Static assets: All files in `railway-api/public/` served with proper MIME types
    - Daily cron job scrapes NACA rates (max 1 snapshot per 24 hours)
 
 ## Development Commands
@@ -40,7 +42,13 @@ This is a NACA (Neighborhood Assistance Corporation of America) Mortgage Calcula
 Creates `naca_extension.zip` ready for Chrome Web Store upload.
 
 ### Deploy Website
-The website auto-deploys to GitHub Pages from the `website/` directory.
+Landing page served from `railway-api/public/index.html`:
+- Edit files directly in `railway-api/public/` directory
+- Auto-deploys with Railway API when pushing to main branch
+- Uses relative API URLs (same-origin, no CORS needed)
+- All static assets served from `railway-api/public/` directory
+
+_Note: Legacy `website/` directory will be removed._
 
 ### Railway API
 ```bash
@@ -82,6 +90,14 @@ bun run src/scripts/runRateUpdate.ts
 ### Shared Code Pattern
 Both extension and website versions share the same `MortgageCalculator` class but have separate DOM manipulation code (`popup/popup.js` vs `website/website.js`).
 
+### Static File Serving
+Railway server serves static files from `railway-api/public/`:
+- All non-API routes check for matching static files
+- MIME types automatically set (.html, .css, .js, .png, .svg, etc.)
+- Fallback to index.html for client-side routing
+- API routes (`/api/*`) take precedence over static files
+- Security: Directory traversal prevention built-in
+
 ## Environment Variables
 Required for Railway API (set in Railway Dashboard):
 - `DATABASE_URL` - Neon PostgreSQL connection string
@@ -116,7 +132,8 @@ See `MIGRATION_STATUS.md` for details and `migration_plan.md` for full migration
 ### API Endpoints
 - `GET /api/rates` - Returns latest mortgage rates
 - `POST /api/msa-lookup` - Geocodes address and returns MSA income data
-- `GET /` - Health check
+- `GET /` - Serves website (index.html)
+- `GET /<path>` - Serves static files from `public/` directory
 
 ### Database Tables (Neon)
 - `naca_mortgage_rates` - Current mortgage rates (updated daily via cron)

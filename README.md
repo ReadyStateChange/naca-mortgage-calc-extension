@@ -1,6 +1,14 @@
-# NACA Mortgage Calculator Extension
+# NACA Mortgage Calculator
 
-This browser extension mimics the mortgage calculator available on the [NACA website](https://www.naca.com/mortgage-calculator/). It is designed to assist NACA buyers while browsing real estate listing websites like Zillow, Redfin, Homes.com, etc.
+Chrome extension and web application that mimics the mortgage calculator available on the [NACA website](https://www.naca.com/mortgage-calculator/). Designed to assist NACA buyers while browsing real estate listing websites like Zillow, Redfin, Homes.com, etc.
+
+## Project Structure
+
+- **Chrome Extension** (`popup/`, `js/`) - Browser extension with popup interface
+- **Website** (`railway-api/public/`) - Standalone web calculator served via Railway
+- **API Server** (`railway-api/`) - Bun server providing rates, MSA lookup, and static file serving
+
+_Note: Legacy `website/` directory will be removed. Edit files directly in `railway-api/public/`._
 
 ## Features
 
@@ -17,18 +25,19 @@ This browser extension mimics the mortgage calculator available on the [NACA web
 
 ## Installation
 
-1. Clone the repository to your local machine:
-   ```bash
-   git clone https://github.com/yourusername/naca-mortgage-calculator-extension.git
-   ```
+### Chrome Extension
 
-2. Open your browser and navigate to the extensions page:
-   - For Chrome, go to `chrome://extensions/`
-   - For Firefox, go to `about:addons`
+1. Install from [Chrome Web Store](https://chromewebstore.google.com/detail/hbdlcdeikllnheobkpnfhameoclhmjli) (recommended)
 
-3. Enable "Developer mode" or "Debug mode" in your browser.
+Or manually:
+1. Clone the repository
+2. Go to `chrome://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked" and select the repository folder
 
-4. Click "Load unpacked" or "Load Temporary Add-on" and select the cloned repository folder.
+### Website Version
+
+Visit the hosted website at your Railway URL (landing page served from `railway-api/public/index.html`) - no installation required!
 
 ## Usage
 
@@ -47,6 +56,28 @@ This browser extension mimics the mortgage calculator available on the [NACA web
    - Down Payment (optional)
 
 4. Click "Calculate" to view the results.
+
+## Development
+
+### Extension
+```bash
+# Build extension zip
+./scripts/zip_for_chrome.sh
+```
+
+### Website
+```bash
+# Edit files directly in railway-api/public/
+# (website/ directory is deprecated and will be removed)
+
+# Test locally
+cd railway-api
+bun run dev
+# Visit http://localhost:3000 - landing page served from public/index.html
+```
+
+### API Server
+See `railway-api/README.md` and `railway-api/DEPLOYMENT.md` for details.
 
 ## Contributing
 
