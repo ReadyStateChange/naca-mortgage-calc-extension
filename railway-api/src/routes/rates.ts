@@ -17,13 +17,24 @@ export async function getRates(): Promise<Response> {
       );
     }
 
-    return new Response(
-      JSON.stringify(result.rows[0]),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    const raw = result.rows[0];
+    const normalized = {
+      ...raw,
+      thirty_year_rate: raw?.thirty_year_rate != null
+        ? parseFloat(raw.thirty_year_rate)
+        : null,
+      twenty_year_rate: raw?.twenty_year_rate != null
+        ? parseFloat(raw.twenty_year_rate)
+        : null,
+      fifteen_year_rate: raw?.fifteen_year_rate != null
+        ? parseFloat(raw.fifteen_year_rate)
+        : null,
+    };
+
+    return new Response(JSON.stringify(normalized), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error fetching rates:", error);
     return new Response(
