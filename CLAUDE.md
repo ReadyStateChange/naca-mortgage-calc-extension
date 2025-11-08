@@ -10,8 +10,9 @@ This is a NACA (Neighborhood Assistance Corporation of America) Mortgage Calcula
 
 - **Browser Extension**: Chrome Manifest V3 extension with popup interface
 - **Website Version**: Standalone web application deployable to GitHub Pages
-- **Backend Services**: Supabase Edge Functions for data fetching and API integration
-- **Data Storage**: Supabase database for mortgage rates and MSA income data
+- **Backend Services**: Railway-hosted Bun server with REST API
+- **Data Storage**: Neon PostgreSQL database for mortgage rates and MSA income data
+- **Cron Jobs**: Railway Cron service for daily rate updates (6 AM UTC)
 
 ### Key Components
 
@@ -25,9 +26,10 @@ This is a NACA (Neighborhood Assistance Corporation of America) Mortgage Calcula
 
 3. **Website Interface** (`website/`) - Standalone web version with MSA lookup functionality
 
-4. **Supabase Functions** (`supabase/functions/`):
-   - `get-naca-rates`: Scrapes and caches NACA mortgage rates (24-hour cache)
-   - `msaLookup`: Geocodes addresses and retrieves MSA income data
+4. **Railway API** (`railway-api/`):
+   - `GET /api/rates`: Returns latest mortgage rates from Neon DB
+   - `POST /api/msa-lookup`: Geocodes addresses and retrieves MSA income data
+   - Daily cron job scrapes NACA rates (max 1 snapshot per 24 hours)
 
 ## Development Commands
 
@@ -40,15 +42,26 @@ Creates `naca_extension.zip` ready for Chrome Web Store upload.
 ### Deploy Website
 The website auto-deploys to GitHub Pages from the `website/` directory.
 
-### Supabase Functions
+### Railway API
 ```bash
-# Serve locally
-supabase functions serve get-naca-rates --env-file ./supabase/.env --no-verify-jwt
-supabase functions serve msaLookup --env-file ./supabase/.env --no-verify-jwt
+# Navigate to API directory
+cd railway-api
 
-# Deploy
-supabase functions deploy get-naca-rates --no-verify-jwt
-supabase functions deploy msaLookup --no-verify-jwt
+# Install dependencies
+bun install
+
+# Run locally (dev mode with watch)
+bun run dev
+
+# Run locally (production mode)
+bun run start
+
+# Test cron job locally
+bun run src/scripts/runRateUpdate.ts
+
+# Deploy to Railway
+# Push to GitHub main branch (auto-deploys)
+# Or use Railway CLI: railway up
 ```
 
 ## Code Structure
@@ -60,24 +73,51 @@ supabase functions deploy msaLookup --no-verify-jwt
 - All calculations account for principal buydowns and include PITI components
 
 ### Data Integration
-- Live mortgage rates scraped from NACA website with 24-hour caching
-- MSA income data from FFEIC database stored in Supabase
+- Live mortgage rates scraped from NACA website daily (Railway cron at 6 AM UTC)
+- Deduplicated rate storage (max 1 snapshot per 24 hours) in Neon PostgreSQL
+- MSA income data from FFEIC database stored in Neon PostgreSQL
 - Census geocoding API for address-to-tract resolution
+- CORS-enabled REST API accessible from browser extension and website
 
 ### Shared Code Pattern
 Both extension and website versions share the same `MortgageCalculator` class but have separate DOM manipulation code (`popup/popup.js` vs `website/website.js`).
 
 ## Environment Variables
-Required for Supabase functions:
-- `NACA_APP_SUPABASE_URL`
-- `NACA_APP_SUPABASE_ROLE_KEY` (for rate updates)
-- `NACA_APP_SUPABASE_ANON_KEY` (for MSA lookups)
+Required for Railway API (set in Railway Dashboard):
+- `DATABASE_URL` - Neon PostgreSQL connection string
+- `PORT` - Server port (default: 3000, auto-set by Railway)
+- `NODE_ENV` - Environment (development/production)
+
+Local development (`.env` file in `railway-api/`):
+```
+DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
+PORT=3000
+NODE_ENV=development
+```
 
 ## Testing
 No automated tests currently implemented. Manual testing required for both extension and website versions.
 
 ## Key Implementation Notes
 - Interest rate buydown calculations include 1.5% maximum reduction cap
-- Rate caching prevents excessive API calls to NACA website
+- Rate deduplication prevents duplicate snapshots (max 1 per 24 hours)
 - MSA lookup requires valid US addresses for Census API geocoding
 - Extension manifest uses minimal permissions (no host permissions required)
+- CORS configured for cross-origin requests from extension and website
+- Railway cron job exits cleanly after each run for proper scheduling
+
+## Migration Status
+**Migrated from Supabase → Neon + Railway** (January 2025)
+- Old: Supabase (PostgreSQL + Edge Functions)
+- New: Neon PostgreSQL + Railway (Bun server + Cron)
+
+See `MIGRATION_STATUS.md` for details and `migration_plan.md` for full migration guide.
+
+### API Endpoints
+- `GET /api/rates` - Returns latest mortgage rates
+- `POST /api/msa-lookup` - Geocodes address and returns MSA income data
+- `GET /` - Health check
+
+### Database Tables (Neon)
+- `naca_mortgage_rates` - Current mortgage rates (updated daily via cron)
+- `ffeic_msa_tract_income_2024` - MSA income data from FFEIC

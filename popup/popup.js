@@ -72,11 +72,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     updatePrincipalBuydownSliderMax();
   }
 
-  const supabaseAnonKey =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxbWZjZmlncnZyc3V3cXZsbmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MDkwMzksImV4cCI6MjA1OTE4NTAzOX0.gI7FtmbUg285dXN_QTJfVLAaKwm5tbKuxbZc3kOau0Q";
-
-  // Define interest rates based on term from results of getLatestMortgageRates. The first option is the base NACA rate, the second is always 1% higher.
-  const interestRates = await getLatestMortgageRates(supabaseAnonKey); // Pass anon key instead of client
+  // Fetch latest NACA rates from Railway API
+  const interestRates = await getLatestMortgageRates();
 
   // Function to update interest rate options based on term
   function updateInterestRateOptions(term) {
@@ -440,7 +437,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       tractPercentDisplay.textContent = "-";
       yearDisplay.textContent = "-";
 
-      performMsaLookup(address, supabaseAnonKey)
+      performMsaLookup(address)
         .then((result) => {
           if (result) {
             statusDiv.textContent = `Data found for: ${
@@ -470,17 +467,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Look up MSA income data
-async function performMsaLookup(address, supabaseAnonKey) {
+// Look up MSA income data from Railway API
+async function performMsaLookup(address) {
+  // TODO: Update this URL after deploying to Railway
+  const API_BASE_URL = 'https://your-app.railway.app';
+
   try {
     const response = await fetch(
-      "https://iqmfcfigrvrsuwqvlnfw.supabase.co/functions/v1/msaLookup",
+      `${API_BASE_URL}/api/msa-lookup`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Add your Supabase anon key here
-          "Authorization": `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify({ address }),
       },
@@ -501,9 +499,11 @@ async function performMsaLookup(address, supabaseAnonKey) {
   }
 }
 
-// Look up latest mortgage rates
-// Fetches rates from the Supabase Edge Function
-async function getLatestMortgageRates(supabaseAnonKey) {
+// Fetch latest mortgage rates from Railway API
+async function getLatestMortgageRates() {
+  // TODO: Update this URL after deploying to Railway
+  const API_BASE_URL = 'https://your-app.railway.app';
+
   // Check local storage first
   const cachedRates = localStorage.getItem("nacaMortgageRates");
   if (cachedRates) {
@@ -524,16 +524,14 @@ async function getLatestMortgageRates(supabaseAnonKey) {
   }
 
   // If no valid cache, fetch fresh rates
-  console.log("Fetching fresh mortgage rates");
+  console.log("Fetching fresh mortgage rates from Railway API");
   try {
     const response = await fetch(
-      "https://iqmfcfigrvrsuwqvlnfw.supabase.co/functions/v1/get-naca-rates",
+      `${API_BASE_URL}/api/rates`,
       {
-        method: "GET", // Use GET as it's likely just retrieving data
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
-          // Add the Supabase anon key for authorization
-          "Authorization": `Bearer ${supabaseAnonKey}`,
         },
       },
     );
@@ -548,7 +546,7 @@ async function getLatestMortgageRates(supabaseAnonKey) {
     const data = await response.json();
 
     if (!data) {
-      console.warn("No mortgage rate data received from the function.");
+      console.warn("No mortgage rate data received from the API.");
       return getDefaultRates();
     }
 

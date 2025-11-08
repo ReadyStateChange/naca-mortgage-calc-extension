@@ -1,7 +1,8 @@
 - [x] Add different rates for different loan terms
 - [x] Add calculation for interest rate buydown
 - [x] Add calculation for Principal buydown
-- [ ] Max interest rate buydown is 1.5%
+- [x] Max interest rate buydown is 1.5%
+- [x] Add a script to run the website on local dev
 - [ ] Add local storage in website version
 - [ ] Update the function that gets latest rates to be a supabase cron job
 - [ ] Update the supabase function that retrieves the latest rate to just read from DB table

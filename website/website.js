@@ -60,10 +60,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const supabaseAnonKey =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxbWZjZmlncnZyc3V3cXZsbmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MDkwMzksImV4cCI6MjA1OTE4NTAzOX0.gI7FtmbUg285dXN_QTJfVLAaKwm5tbKuxbZc3kOau0Q";
-
-  const interestRates = await getLatestMortgageRates(supabaseAnonKey);
+  // Fetch latest NACA rates from Railway API
+  const interestRates = await getLatestMortgageRates();
 
   function updateInterestRateOptions(term) {
     rateInput.innerHTML = "";
@@ -367,7 +365,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       tractPercentDisplay.textContent = "-";
       yearDisplay.textContent = "-";
 
-      performMsaLookup(address, supabaseAnonKey)
+      performMsaLookup(address)
         .then((result) => {
           if (result) {
             statusDiv.textContent = `Data found for: ${
@@ -395,16 +393,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Fetch latest mortgage rates from Supabase Edge Function
-async function getLatestMortgageRates(supabaseAnonKey) {
+// Fetch latest mortgage rates from Railway API
+async function getLatestMortgageRates() {
+  // TODO: Update this URL after deploying to Railway
+  const API_BASE_URL = 'https://your-app.railway.app';
+
   try {
     const response = await fetch(
-      "https://iqmfcfigrvrsuwqvlnfw.supabase.co/functions/v1/get-naca-rates",
+      `${API_BASE_URL}/api/rates`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabaseAnonKey}`,
         },
       },
     );
@@ -431,16 +431,18 @@ async function getLatestMortgageRates(supabaseAnonKey) {
   }
 }
 
-// Look up MSA income data
-async function performMsaLookup(address, supabaseAnonKey) {
+// Look up MSA income data from Railway API
+async function performMsaLookup(address) {
+  // TODO: Update this URL after deploying to Railway
+  const API_BASE_URL = 'https://your-app.railway.app';
+
   try {
     const response = await fetch(
-      "https://iqmfcfigrvrsuwqvlnfw.supabase.co/functions/v1/msaLookup",
+      `${API_BASE_URL}/api/msa-lookup`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify({ address }),
       },
