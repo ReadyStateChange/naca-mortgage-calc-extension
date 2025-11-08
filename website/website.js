@@ -395,8 +395,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // Fetch latest mortgage rates from Railway API
 async function getLatestMortgageRates() {
-  // TODO: Update this URL after deploying to Railway
-  const API_BASE_URL = 'https://your-app.railway.app';
+  const API_BASE_URL =
+    "https://naca-mortgage-calc-extension-production.up.railway.app";
 
   try {
     const response = await fetch(
@@ -433,8 +433,8 @@ async function getLatestMortgageRates() {
 
 // Look up MSA income data from Railway API
 async function performMsaLookup(address) {
-  // TODO: Update this URL after deploying to Railway
-  const API_BASE_URL = 'https://your-app.railway.app';
+  const API_BASE_URL =
+    "https://naca-mortgage-calc-extension-production.up.railway.app";
 
   try {
     const response = await fetch(

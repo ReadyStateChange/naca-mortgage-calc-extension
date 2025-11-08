@@ -1,10 +1,10 @@
 // API Configuration for NACA Calculator
-// Update API_BASE_URL after deploying to Railway
+// Railway production base URL
 
-const API_BASE_URL = 'https://your-app.railway.app'; // TODO: Replace with actual Railway URL after deployment
+const API_BASE_URL =
+  "https://naca-mortgage-calc-extension-production.up.railway.app";
 
 export const API_ENDPOINTS = {
   rates: `${API_BASE_URL}/api/rates`,
   msaLookup: `${API_BASE_URL}/api/msa-lookup`,
 };
-

@@ -29,82 +29,39 @@ I've successfully implemented **Phase 2** (Bun Server Development) and **Phase 4
 
 ---
 
-## 📋 What You Need To Do Next
+## ✅ Current Status & Next Steps
 
-The remaining phases require **terminal commands** and **browser actions**:
+You now have a fully working stack on **Neon + Railway + Bun**. Use this checklist to keep things running smoothly:
 
-### Phase 1: Database Migration (Neon DB)
-**Estimated Time: 2-3 hours**
+### 1. Verify data & connectivity (one-time sanity check)
+- Confirm Neon has the expected rows in `naca_mortgage_rates` and `ffeic_msa_tract_income_2024`
+- Run `bun run dev` inside `railway-api/` and hit `http://localhost:3000/` to validate connectivity with Neon
 
-You need to:
-1. Create Neon project (browser)
-2. Export Supabase data (terminal: `supabase db dump`)
-3. Create tables in Neon (browser: SQL Editor)
-4. Import data to Neon (terminal: `psql`)
-5. Verify migration (browser: SQL Editor)
+### 2. Maintain the Railway services
+- API service: start command `bun run start`
+- Cron service: `bun run src/scripts/runRateUpdate.ts` (scheduled `0 6 * * *`)
+- Environment variables: `DATABASE_URL` (Neon connection string), `NODE_ENV=production`
+- Monitoring: Railway dashboard → Logs tab for both services
 
-📖 **Detailed Instructions:** See `MIGRATION_STATUS.md` → Phase 1
+### 3. Build & ship the extension / website
+- Update the production base URL if it ever changes (`js/api-config.js`, `popup/popup.js`, `website/website.js`)
+- Package the extension: `./scripts/zip_for_chrome.sh` (produces `naca_extension.zip`)
+- Deploy the static website (if used) with the updated JS bundle
 
----
+### 4. Regression testing before releases
+1. `curl https://naca-mortgage-calc-extension-production.up.railway.app/api/rates`
+2. `curl -X POST .../api/msa-lookup -d '{"address": "..."}'`
+3. Load the Chrome extension (unpacked) and confirm rates/MSA lookup work
+4. Open the public website (`website/index.html`) and verify UI + calculations
+5. Run the Railway cron service via “Run Now” and confirm a log entry plus DB insert (only if rates changed)
 
-### Phase 3: Railway Deployment
-**Estimated Time: 1 hour**
+### 5. Ongoing maintenance
+- Review Neon usage (storage + connections) from the Neon dashboard
+- Rotate Railway and Neon credentials periodically
+- Keep Bun + dependencies up to date (`bun update`)
+- Update documentation whenever workflows change
 
-You need to:
-1. Install dependencies (terminal: `cd railway-api && bun install`)
-2. Test locally (terminal: `bun run dev`)
-3. Deploy to Railway (browser: railway.app)
-4. Configure environment variables (browser: Railway Dashboard)
-5. Set up cron service (browser: Railway Dashboard)
-6. **Copy your Railway URL** (you'll need it for Phase 4)
-
-📖 **Detailed Instructions:** See `MIGRATION_STATUS.md` → Phase 3
-
----
-
-### Phase 4: Update Railway URLs
-**Estimated Time: 10 minutes**
-
-After you get your Railway URL (e.g., `https://naca-api-xyz.railway.app`), you need to:
-1. Replace `https://your-app.railway.app` in `popup/popup.js` (2 places)
-2. Replace `https://your-app.railway.app` in `website/website.js` (2 places)
-3. Replace `https://your-app.railway.app` in `js/api-config.js` (1 place)
-
-📖 **Quick Reference:** See `railway-api/UPDATE_URLS.md`
-
----
-
-### Phase 5: Testing & Validation
-**Estimated Time: 2 hours**
-
-You need to:
-1. Test Railway API endpoints (terminal: `curl`)
-2. Test extension in Chrome (browser: Load unpacked)
-3. Test website (browser: Open `website/index.html`)
-4. Test cron job (browser: Railway Dashboard "Run Now")
-5. Verify no CORS errors
-6. Verify rates display correctly
-7. Test MSA lookup functionality
-
-📖 **Testing Checklist:** See `MIGRATION_STATUS.md` → Phase 5
-
----
-
-## 🗺️ Migration Roadmap
-
-```
-Phase 1: Database Migration     [🔜 YOU DO THIS]
-    ↓
-Phase 2: Bun Server             [✅ DONE BY ME]
-    ↓
-Phase 3: Railway Deployment     [🔜 YOU DO THIS]
-    ↓
-Phase 4: Frontend URLs          [✅ CODE READY, YOU UPDATE URLS]
-    ↓
-Phase 5: Testing                [🔜 YOU DO THIS]
-    ↓
-Phase 6: Documentation          [✅ DONE BY ME]
-```
+📖 Reference docs: see `MIGRATION_STATUS.md` for a historical timeline and `railway-api/README.md` for service commands.
 
 ---
 
@@ -167,23 +124,22 @@ curl -X POST http://localhost:3000/api/msa-lookup \
 
 ## 📖 Key Documents
 
-| Document                     | Purpose                                                |
-| ---------------------------- | ------------------------------------------------------ |
-| `MIGRATION_STATUS.md`        | **START HERE** - Complete step-by-step migration guide |
-| `migration_plan.md`          | Original detailed migration plan (reference)           |
-| `railway-api/README.md`      | Railway API documentation                              |
-| `railway-api/UPDATE_URLS.md` | Quick guide to update Railway URLs                     |
-| `CLAUDE.md`                  | Updated project overview (for AI assistants)           |
+| Document                     | Purpose                                                      |
+| ---------------------------- | ------------------------------------------------------------ |
+| `MIGRATION_STATUS.md`        | Timeline and verification notes for the Neon/Railway cutover |
+| `railway-api/README.md`      | Railway API commands, env, and local dev instructions        |
+| `railway-api/UPDATE_URLS.md` | Quick guide to update Railway URLs                           |
+| `migration_plan.md`          | Legacy migration record (historic reference only)            |
+| `CLAUDE.md`                  | Updated project overview (for AI assistants)                 |
 
 ---
 
 ## ⚠️ Important Notes
 
-1. **Don't skip Phase 1** - You need Neon DB set up before the Railway API will work
-2. **Save your Neon connection string** - You'll need it for local testing and Railway deployment
-3. **Copy your Railway URL** - You'll need it to update the frontend files
-4. **Test thoroughly** - Run through all test scenarios in Phase 5 before going live
-5. **Keep Supabase running** - Don't decommission it until Railway is stable for 1+ week
+1. Keep the Neon connection string secure (used locally + on Railway)
+2. Always test in staging/local before pushing to production Railway
+3. Rotate API keys / passwords if any credentials leak
+4. Monitor Railway cron logs for failures (rate scraper)
 
 ---
 
@@ -208,12 +164,10 @@ curl -X POST http://localhost:3000/api/msa-lookup \
 
 ## 🎉 Ready to Start?
 
-1. Open `MIGRATION_STATUS.md`
-2. Start with **Phase 1: Database Migration**
-3. Follow each step carefully
-4. Check off items as you complete them
-
-**Estimated Total Time: 10-13 hours** (spread over a few days)
+1. Review the checklist above before releases
+2. Rebuild the Chrome extension after any API contract changes
+3. Monitor Neon + Railway dashboards weekly
+4. Capture any gotchas in `MIGRATION_STATUS.md`
 
 Good luck! 🚀
 

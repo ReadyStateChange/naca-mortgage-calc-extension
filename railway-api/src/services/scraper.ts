@@ -1,4 +1,4 @@
-// Regex from original Supabase function (supabase/functions/get-naca-rates/index.ts:7)
+// Regex extracted from the NACA mortgage calculator script
 const rateRegex =
   /function\s+fillRate\s*\(\)\s*\{\s*var\s+thirtyYearRate\s*=\s*"([^"]+)";\s*var\s+twentyYearRate\s*=\s*"([^"]+)";\s*var\s+fifteenYearRate\s*=\s*"([^"]+)";/;
 

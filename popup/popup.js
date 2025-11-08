@@ -469,8 +469,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // Look up MSA income data from Railway API
 async function performMsaLookup(address) {
-  // TODO: Update this URL after deploying to Railway
-  const API_BASE_URL = 'https://your-app.railway.app';
+  const API_BASE_URL =
+    "https://naca-mortgage-calc-extension-production.up.railway.app";
 
   try {
     const response = await fetch(
@@ -501,8 +501,8 @@ async function performMsaLookup(address) {
 
 // Fetch latest mortgage rates from Railway API
 async function getLatestMortgageRates() {
-  // TODO: Update this URL after deploying to Railway
-  const API_BASE_URL = 'https://your-app.railway.app';
+  const API_BASE_URL =
+    "https://naca-mortgage-calc-extension-production.up.railway.app";
 
   // Check local storage first
   const cachedRates = localStorage.getItem("nacaMortgageRates");
@@ -552,9 +552,18 @@ async function getLatestMortgageRates() {
 
     // Format and cache the new rates
     const formattedRates = {
-      "15": [data.fifteen_year_rate, data.fifteen_year_rate + 1],
-      "20": [data.twenty_year_rate, data.twenty_year_rate + 1],
-      "30": [data.thirty_year_rate, data.thirty_year_rate + 1],
+      "15": [
+        parseFloat(data.fifteen_year_rate),
+        parseFloat(data.fifteen_year_rate) + 1,
+      ],
+      "20": [
+        parseFloat(data.twenty_year_rate),
+        parseFloat(data.twenty_year_rate) + 1,
+      ],
+      "30": [
+        parseFloat(data.thirty_year_rate),
+        parseFloat(data.thirty_year_rate) + 1,
+      ],
     };
 
     // Save to local storage with timestamp

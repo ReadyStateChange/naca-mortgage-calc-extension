@@ -4,6 +4,6 @@
 - [x] Max interest rate buydown is 1.5%
 - [x] Add a script to run the website on local dev
 - [ ] Add local storage in website version
-- [ ] Update the function that gets latest rates to be a supabase cron job
-- [ ] Update the supabase function that retrieves the latest rate to just read from DB table
+- [ ] Monitor Railway cron output for failures (set up alerting?)
+- [ ] Document Neon/Railway ops runbook in project wiki
 - [ ] Add radio button to select between priority member and non-priority member
