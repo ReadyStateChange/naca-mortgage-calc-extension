@@ -1,6 +1,7 @@
 import { pool } from "../services/db";
 import { corsHeaders } from "../utils/cors";
-
+import { decodeCensusGeocodeResponse } from "../schemas/external/census";
+import { Either } from "effect";
 interface AddressRequest {
   address: string;
 }
@@ -15,70 +16,58 @@ interface LocationData {
 
 async function geocodeAddress(address: string) {
   const encodedAddress = encodeURIComponent(address);
-  const apiUrl =
-    `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodedAddress}&benchmark=4&vintage=4&format=json`;
+  const apiUrl = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodedAddress}&benchmark=4&vintage=4&format=json`;
 
   const response = await fetch(apiUrl);
   const data = await response.json();
 
-  if (data.result?.addressMatches?.length > 0) {
-    const match = data.result.addressMatches[0];
-    return {
-      matched: true,
-      matchedAddress: match.matchedAddress,
-      coordinates: match.coordinates,
-      geographies: match.geographies,
-    };
+  const result = decodeCensusGeocodeResponse(data);
+
+  if (Either.isLeft(result)) {
+    return { matched: false, error: result.left };
   }
 
-  return { matched: false };
-}
-
-function extractLocationData(geocodeResult: any): LocationData {
-  const censusBlocks = geocodeResult.geographies["2020 Census Blocks"][0];
-  const censusTract = geocodeResult.geographies["Census Tracts"][0];
+  const censusGeocodeResponse = result.right;
+  const censusTract =
+    censusGeocodeResponse.result.addressMatches[0].geographies[
+      "Census Tracts"
+    ][0];
+  const matchedAddress =
+    censusGeocodeResponse.result.addressMatches[0].matchedAddress;
 
   return {
+    matched: true,
     state: censusTract.STATE,
     county: censusTract.COUNTY,
     tract: censusTract.TRACT,
-    block: censusBlocks.BLOCK,
-    geoid: censusTract.GEOID,
+    matchedAddress,
   };
 }
 
 export async function msaLookup(req: Request): Promise<Response> {
   try {
-    const body = await req.json() as AddressRequest;
+    const body = (await req.json()) as AddressRequest;
     const { address } = body;
 
     if (!address) {
-      return new Response(
-        JSON.stringify({ error: "Address is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return new Response(JSON.stringify({ error: "Address is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Geocode address
     const geocodeResult = await geocodeAddress(address);
+
     if (!geocodeResult.matched) {
       return new Response(
         JSON.stringify({ error: "Address could not be geocoded" }),
         {
           status: 404,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
       );
     }
-
-    // Extract location data
-    const locationData = extractLocationData(geocodeResult);
-
-    // Query income data from Neon
-    // Convert string codes to integers to match database schema
     const result = await pool.query(
       `SELECT
         msa_median_income,
@@ -86,12 +75,11 @@ export async function msaLookup(req: Request): Promise<Response> {
         tract_median_income_percentage
       FROM ffeic_msa_tract_income_2024
       WHERE state_code = $1 AND county_code = $2 AND tract_code = $3`,
-      [
-        parseInt(locationData.state, 10),
-        parseInt(locationData.county, 10),
-        parseInt(locationData.tract, 10),
-      ],
+      [geocodeResult.state, geocodeResult.county, geocodeResult.tract]
     );
+
+    // Query income data from Neon
+    // Convert string codes to integers to match database schema
 
     if (result.rows.length === 0) {
       return new Response(
@@ -99,7 +87,7 @@ export async function msaLookup(req: Request): Promise<Response> {
         {
           status: 404,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -107,33 +95,26 @@ export async function msaLookup(req: Request): Promise<Response> {
 
     const response = {
       address: geocodeResult.matchedAddress || address,
-      state: locationData.state,
-      county: locationData.county,
-      tract: locationData.tract,
+      state: geocodeResult.state,
+      county: geocodeResult.county,
+      tract: geocodeResult.tract,
       msaMedianFamilyIncome: incomeData.msa_median_income,
       tractMedianFamilyIncome: incomeData.estimated_tract_median_income,
       tractPercentOfMsa: incomeData.tract_median_income_percentage,
       year: 2024,
     };
 
-    return new Response(
-      JSON.stringify(response),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error in MSA lookup:", error);
-    const errorMessage = error instanceof Error
-      ? error.message
-      : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 }
