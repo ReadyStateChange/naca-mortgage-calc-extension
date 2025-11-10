@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { Either } from "effect";
+import { Either, ParseResult } from "effect";
 import { decodeCensusGeocodeResponse } from "./census";
 
 describe("Decoding Census Geocode Response", () => {
-  it("validates successful geocode response", () => {
+  it("parses successful geocode response", () => {
     const mockResponse = {
       result: {
         addressMatches: [
@@ -27,5 +27,20 @@ describe("Decoding Census Geocode Response", () => {
     const result = decodeCensusGeocodeResponse(mockResponse);
 
     expect(Either.isRight(result)).toBeTruthy();
+  });
+
+  it("rejects invalid response", () => {
+    const mockResponse = {
+      result: {
+        benchmark: {
+          isDefault: true,
+          benchmarkDescription: "Public Address Ranges - Current Benchmark",
+          id: "4",
+          benchmarkName: "Public_AR_Current",
+        },
+      },
+    };
+    const result = decodeCensusGeocodeResponse(mockResponse);
+    expect(Either.isLeft(result)).toBeTruthy();
   });
 });
