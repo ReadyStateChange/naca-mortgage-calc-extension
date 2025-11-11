@@ -1,3 +1,9 @@
+import { Either } from "effect";
+import {
+  decodeNacaMortgageRates,
+  type NacaMortgageRates,
+} from "../schemas/external/rates";
+
 // Regex extracted from the NACA mortgage calculator script
 const rateRegex =
   /function\s+fillRate\s*\(\)\s*\{\s*var\s+thirtyYearRate\s*=\s*"([^"]+)";\s*var\s+twentyYearRate\s*=\s*"([^"]+)";\s*var\s+fifteenYearRate\s*=\s*"([^"]+)";/;
@@ -10,7 +16,7 @@ export interface RateData {
   fifteen_year_rate: number;
 }
 
-export async function scrapeNacaRates(): Promise<RateData> {
+export async function scrapeNacaRates(): Promise<NacaMortgageRates> {
   console.log("🔍 Fetching rates from NACA website...");
 
   const response = await fetch(NACA_CALCULATOR_URL);
@@ -27,11 +33,17 @@ export async function scrapeNacaRates(): Promise<RateData> {
   }
 
   const rates = {
-    thirty_year_rate: parseFloat(match[1].replace("%", "")),
-    twenty_year_rate: parseFloat(match[2].replace("%", "")),
-    fifteen_year_rate: parseFloat(match[3].replace("%", "")),
+    thirty_year_rate: match[1].replace("%", ""),
+    twenty_year_rate: match[2].replace("%", ""),
+    fifteen_year_rate: match[3].replace("%", ""),
   };
 
-  console.log("✅ Scraped rates:", rates);
-  return rates;
+  const parsedRates = decodeNacaMortgageRates(rates);
+  if (Either.isLeft(parsedRates)) {
+    console.log(parsedRates.left);
+    throw new Error("Could not parse rates from NACA page");
+  }
+
+  console.log("✅ Scraped rates:", parsedRates.right);
+  return parsedRates.right;
 }
