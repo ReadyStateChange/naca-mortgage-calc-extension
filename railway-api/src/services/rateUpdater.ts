@@ -1,46 +1,46 @@
 import { pool } from "./db";
-
-type RateSnapshot = {
-  thirty_year_rate: number;
-  twenty_year_rate: number;
-  fifteen_year_rate: number;
-};
+import { Either } from "effect";
+import {
+  decodeNacaMortgageRates,
+  NacaMortgageRatesEquivalence,
+  type NacaMortgageRates,
+} from "../schemas/external/rates";
 
 const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 function ratesMatch(
-  latest: RateSnapshot | undefined,
-  incoming: RateSnapshot,
+  latestDbRates: NacaMortgageRates,
+  ratesFromWebsite: NacaMortgageRates
 ) {
-  if (!latest) return false;
-  return (
-    latest.thirty_year_rate === incoming.thirty_year_rate &&
-    latest.twenty_year_rate === incoming.twenty_year_rate &&
-    latest.fifteen_year_rate === incoming.fifteen_year_rate
-  );
+  if (!latestDbRates) return false;
+  console.log("Testing if rates have changed");
+  return NacaMortgageRatesEquivalence(latestDbRates, ratesFromWebsite);
 }
 
-export async function saveRatesIfNeeded(rates: RateSnapshot) {
+export async function saveRatesIfNeeded(ratesFromWebsite: NacaMortgageRates) {
   const latestResult = await pool.query(
-    "SELECT * FROM naca_mortgage_rates ORDER BY created_at DESC LIMIT 1",
+    "SELECT * FROM naca_mortgage_rates ORDER BY created_at DESC LIMIT 1"
   );
 
-  const latest = latestResult.rows[0] as
-    | (RateSnapshot & { created_at: string })
-    | undefined;
+  const decodedRates = decodeNacaMortgageRates(latestResult.rows[0]);
+  if (Either.isLeft(decodedRates)) {
+    console.log(decodedRates.left);
+    throw new Error("Could not parse rates from DB");
+  }
+  const parsedRatesFromDb = decodedRates.right;
 
-  if (ratesMatch(latest, rates)) {
+  if (ratesMatch(parsedRatesFromDb, ratesFromWebsite)) {
     console.log("ℹ️ Rates unchanged, skipping insert");
     return { status: "unchanged" as const };
   }
 
-  if (latest) {
-    const lastCreatedAt = new Date(latest.created_at);
+  if (parsedRatesFromDb.created_at) {
+    const lastCreatedAt = parsedRatesFromDb.created_at;
     const now = new Date();
 
     if (now.getTime() - lastCreatedAt.getTime() < ONE_DAY_IN_MS) {
       console.log(
-        "ℹ️ Rates already captured in the last 24 hours, skipping insert",
+        "ℹ️ Rates already captured in the last 24 hours, skipping insert"
       );
       return { status: "already_saved" as const, lastCreatedAt };
     }
@@ -51,7 +51,11 @@ export async function saveRatesIfNeeded(rates: RateSnapshot) {
       (thirty_year_rate, twenty_year_rate, fifteen_year_rate)
     VALUES ($1, $2, $3)
     RETURNING *`,
-    [rates.thirty_year_rate, rates.twenty_year_rate, rates.fifteen_year_rate],
+    [
+      ratesFromWebsite.thirty_year_rate,
+      ratesFromWebsite.twenty_year_rate,
+      ratesFromWebsite.fifteen_year_rate,
+    ]
   );
 
   const saved = insertResult.rows[0];

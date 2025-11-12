@@ -10,12 +10,6 @@ const rateRegex =
 
 const NACA_CALCULATOR_URL = "https://www.naca.com/mortgage-calculator/";
 
-export interface RateData {
-  thirty_year_rate: number;
-  twenty_year_rate: number;
-  fifteen_year_rate: number;
-}
-
 export async function scrapeNacaRates(): Promise<NacaMortgageRates> {
   console.log("🔍 Fetching rates from NACA website...");
 
