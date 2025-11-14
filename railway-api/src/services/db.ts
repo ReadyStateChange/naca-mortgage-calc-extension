@@ -1,8 +1,16 @@
 import { Pool } from "pg";
+import { Context } from "effect";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is required");
 }
+
+export class DbConnectionPool extends Context.Tag("DbConnectionPoool")<
+  DbConnectionPool,
+  InstanceType<typeof Pool>
+>() {}
+
+export type DbConnectionPoolType = Context.Tag.Service<DbConnectionPool>;
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
