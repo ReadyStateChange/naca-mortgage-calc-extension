@@ -6,14 +6,6 @@ interface AddressRequest {
   address: string;
 }
 
-interface LocationData {
-  state: string;
-  county: string;
-  tract: string;
-  block: string;
-  geoid: string;
-}
-
 async function geocodeAddress(address: string) {
   const encodedAddress = encodeURIComponent(address);
   const apiUrl = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodedAddress}&benchmark=4&vintage=4&format=json`;

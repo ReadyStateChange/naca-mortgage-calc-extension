@@ -8,19 +8,15 @@ export const NacaMortgageRatesSchema = Schema.Struct({
     Schema.Union(Schema.instanceOf(Date), Schema.DateFromString),
     { exact: true }
   ),
-})
-  .pipe(
-    Schema.extend(Schema.Record({ key: Schema.String, value: Schema.Unknown }))
-  )
-  .annotations({
-    equivalence: () => (rate1, rate2) => {
-      return (
-        rate1.thirty_year_rate === rate2.thirty_year_rate &&
-        rate1.twenty_year_rate === rate2.twenty_year_rate &&
-        rate1.fifteen_year_rate === rate2.fifteen_year_rate
-      );
-    },
-  });
+}).annotations({
+  equivalence: () => (rate1, rate2) => {
+    return (
+      rate1.thirty_year_rate === rate2.thirty_year_rate &&
+      rate1.twenty_year_rate === rate2.twenty_year_rate &&
+      rate1.fifteen_year_rate === rate2.fifteen_year_rate
+    );
+  },
+});
 
 export const NacaMortgageRatesEquivalence = Schema.equivalence(
   NacaMortgageRatesSchema

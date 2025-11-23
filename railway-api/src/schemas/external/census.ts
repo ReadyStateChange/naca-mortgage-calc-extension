@@ -15,12 +15,7 @@ export const CensusGeocodeResponseSchema = Schema.Struct({
           ),
         }),
         matchedAddress: Schema.optional(Schema.String),
-        // Using catchAll to allow other properties without typing them
-      }).pipe(
-        Schema.extend(
-          Schema.Record({ key: Schema.String, value: Schema.Unknown })
-        )
-      )
+      })
     ),
   }),
 });

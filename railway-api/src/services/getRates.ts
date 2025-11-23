@@ -1,8 +1,6 @@
-import { Effect, Data, Either } from "effect";
-import { DbConnectionPool, pool } from "./db";
+import { Effect, Either } from "effect";
+import { DbConnectionPool, pool, DbError } from "./db";
 import { decodeNacaMortgageRates } from "../schemas/external/rates";
-
-export class DbError extends Data.TaggedError("DbError")<{ cause: unknown }> {}
 
 export const getRatesFromDb = Effect.gen(function* () {
   const connectionPool = yield* DbConnectionPool;

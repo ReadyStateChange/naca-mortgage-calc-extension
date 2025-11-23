@@ -1,9 +1,10 @@
 import { Pool } from "pg";
-import { Context } from "effect";
+import { Context, Data } from "effect";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is required");
 }
+export class DbError extends Data.TaggedError("DbError")<{ cause: unknown }> {}
 
 export class DbConnectionPool extends Context.Tag("DbConnectionPoool")<
   DbConnectionPool,
