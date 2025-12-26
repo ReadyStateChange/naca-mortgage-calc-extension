@@ -3,7 +3,11 @@
 - [x] Add calculation for Principal buydown
 - [x] Max interest rate buydown is 1.5%
 - [x] Add a script to run the website on local dev
-- [ ] Add local storage in website version
+- [ ] Update extension code to be separate concerns
+- [ ] Make it so that the the extension and the  railway app are different packages and all the accompanying infrastructure changes
+- [ ] extract the calcuations into their own package
+- [ ] Add local storage in website and chrome extension version to store the mortgage rates for 24hrs default to that value if less than 24 hours old
+- [ ] Add loading spinner on website and chrome when getting the latest rates if local storage cache is expired
 - [ ] Monitor Railway cron output for failures (set up alerting?)
 - [ ] Document Neon/Railway ops runbook in project wiki
 - [ ] Add radio button to select between priority member and non-priority member
