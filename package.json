@@ -4,7 +4,7 @@
   "description": "This browser extension mimics the mortgage calculator available on the [NACA website](https://www.naca.com/mortgage-calculator/). It is designed to assist NACA buyers while browsing real estate listing websites like Zillow, Redfin, Homes.com, etc.",
   "main": "popup/popup.js",
   "scripts": {
-    "dev": "http-server ./website -p 8080 -c-1"
+    "test": "bun test"
   },
   "author": "",
   "license": "ISC",

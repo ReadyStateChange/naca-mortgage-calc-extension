@@ -17,11 +17,9 @@ class MortgageCalculator {
    */
   formatNumber(num, decimals = 2, prefix = "$") {
     if (isNaN(num)) return "";
-    return `${prefix}${
-      num
-        .toFixed(decimals)
-        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-    }`;
+    return `${prefix}${num
+      .toFixed(decimals)
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
   }
 
   /**
@@ -78,7 +76,7 @@ class MortgageCalculator {
     taxRate,
     insurance,
     hoaFee,
-    principalBuydown = 0,
+    principalBuydown = 0
   ) {
     const monthlyRate = rate / 100 / 12;
     const numberOfPayments = term * 12;
@@ -98,9 +96,8 @@ class MortgageCalculator {
       Math.abs(totalMonthlyPayment - desiredMonthlyPayment) > 0.01
     ) {
       guess = (low + high) / 2;
-      const loanAmount = guess - principalBuydown > 0
-        ? guess - principalBuydown
-        : 0;
+      const loanAmount =
+        guess - principalBuydown > 0 ? guess - principalBuydown : 0;
       totalMonthlyPayment =
         this.calculateBaseMonthlyPayment(loanAmount, rate, term) +
         this.calculateMonthlyTax(guess, taxRate) +
@@ -203,7 +200,7 @@ class MortgageCalculator {
         tax,
         insurance,
         hoaFee,
-        principalBuydown,
+        principalBuydown
       );
 
       // 2. Calculate Principal & Interest based on the full calculated principal
@@ -212,7 +209,7 @@ class MortgageCalculator {
       const principalInterest = this.calculateBaseMonthlyPayment(
         principal > 0 ? principal : 0, // Use full principal
         rate, // Use the bought-down rate
-        term,
+        term
       );
 
       // 3. Calculate taxes based on the full purchase price
@@ -227,7 +224,8 @@ class MortgageCalculator {
         insuranceAmount: this.formatNumber(insurance),
         hoaFee: this.formatNumber(hoaFee),
       };
-    } else { // calcMethod === 'price'
+    } else {
+      // calcMethod === 'price'
       const purchasePrice = price;
       const principal = purchasePrice - principalBuydown;
 
@@ -236,15 +234,15 @@ class MortgageCalculator {
       const principalInterest = this.calculateBaseMonthlyPayment(
         principal > 0 ? principal : 0, // Use full principal
         rate, // Use the bought-down rate
-        term,
+        term
       );
 
       // 2. Calculate taxes based on the full purchase price
       const monthlyTax = this.calculateMonthlyTax(purchasePrice, tax);
 
       // 3. Calculate total monthly payment
-      const totalMonthlyPayment = principalInterest + monthlyTax + insurance +
-        hoaFee;
+      const totalMonthlyPayment =
+        principalInterest + monthlyTax + insurance + hoaFee;
 
       return {
         monthlyPayment: this.formatNumber(totalMonthlyPayment),
@@ -253,6 +251,78 @@ class MortgageCalculator {
         taxes: this.formatNumber(monthlyTax),
         insuranceAmount: this.formatNumber(insurance),
         hoaFee: this.formatNumber(hoaFee),
+      };
+    }
+  }
+
+  /**
+   * Calculate mortgage details and return raw numbers (not formatted strings)
+   * @param {Object} inputs - Validated input object
+   * @returns {Object} Raw numeric results
+   */
+  calculateRaw(inputs) {
+    const {
+      price,
+      term,
+      rate,
+      tax,
+      insurance,
+      hoaFee,
+      principalBuydown = 0,
+    } = inputs;
+
+    if (this.calcMethod === "payment") {
+      const desiredMonthlyPayment = price;
+
+      const purchasePrice = this.calculateMaxPurchasePrice(
+        desiredMonthlyPayment,
+        rate,
+        term,
+        tax,
+        insurance,
+        hoaFee,
+        principalBuydown
+      );
+
+      const principal = purchasePrice - principalBuydown;
+      const principalInterest = this.calculateBaseMonthlyPayment(
+        principal > 0 ? principal : 0,
+        rate,
+        term
+      );
+
+      const monthlyTax = this.calculateMonthlyTax(purchasePrice, tax);
+
+      return {
+        monthlyPayment: desiredMonthlyPayment,
+        purchasePrice: purchasePrice,
+        principalInterest: principalInterest,
+        taxes: monthlyTax,
+        insurance: insurance,
+        hoaFee: hoaFee,
+      };
+    } else {
+      // calcMethod === 'price'
+      const purchasePrice = price;
+      const principal = purchasePrice - principalBuydown;
+
+      const principalInterest = this.calculateBaseMonthlyPayment(
+        principal > 0 ? principal : 0,
+        rate,
+        term
+      );
+
+      const monthlyTax = this.calculateMonthlyTax(purchasePrice, tax);
+      const totalMonthlyPayment =
+        principalInterest + monthlyTax + insurance + hoaFee;
+
+      return {
+        monthlyPayment: totalMonthlyPayment,
+        purchasePrice: purchasePrice,
+        principalInterest: principalInterest,
+        taxes: monthlyTax,
+        insurance: insurance,
+        hoaFee: hoaFee,
       };
     }
   }
