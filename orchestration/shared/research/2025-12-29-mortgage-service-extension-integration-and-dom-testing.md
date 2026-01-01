@@ -282,15 +282,15 @@ GlobalRegistrator.register();
 
 ### Comparison Table
 
-| Aspect | Testing Library + Bun | Raw Bun + Happy DOM |
-|--------|----------------------|---------------------|
-| **Query Style** | User-centric (by role, label, text) | DOM-centric (getElementById, querySelector) |
-| **Async Handling** | `userEvent` handles async naturally | Manual event dispatching |
-| **Error Messages** | Clear, actionable errors | Generic assertion failures |
-| **Learning Curve** | Higher (new query patterns) | Lower (familiar DOM APIs) |
-| **Maintenance** | Tests survive refactors | Tests break on HTML changes |
-| **Bundle Size** | ~80KB additional | Minimal overhead |
-| **Best For** | User-facing behavior | Implementation testing |
+| Aspect             | Testing Library + Bun               | Raw Bun + Happy DOM                         |
+| ------------------ | ----------------------------------- | ------------------------------------------- |
+| **Query Style**    | User-centric (by role, label, text) | DOM-centric (getElementById, querySelector) |
+| **Async Handling** | `userEvent` handles async naturally | Manual event dispatching                    |
+| **Error Messages** | Clear, actionable errors            | Generic assertion failures                  |
+| **Learning Curve** | Higher (new query patterns)         | Lower (familiar DOM APIs)                   |
+| **Maintenance**    | Tests survive refactors             | Tests break on HTML changes                 |
+| **Bundle Size**    | ~80KB additional                    | Minimal overhead                            |
+| **Best For**       | User-facing behavior                | Implementation testing                      |
 
 ### Recommended Approach: Bun + Happy DOM + @testing-library/dom
 
@@ -380,12 +380,12 @@ describe("Popup Calculator", () => {
 
 ### Happy DOM vs jsdom
 
-| Aspect | Happy DOM | jsdom |
-|--------|-----------|-------|
-| **Performance** | Faster for most tests | Slower but more comprehensive |
-| **API Coverage** | Most common APIs | Nearly complete browser API |
-| **Bun Support** | Officially recommended | Supported (Dec 2024) |
-| **Use Case** | General UI testing | Complex browser feature testing |
+| Aspect           | Happy DOM              | jsdom                           |
+| ---------------- | ---------------------- | ------------------------------- |
+| **Performance**  | Faster for most tests  | Slower but more comprehensive   |
+| **API Coverage** | Most common APIs       | Nearly complete browser API     |
+| **Bun Support**  | Officially recommended | Supported (Dec 2024)            |
+| **Use Case**     | General UI testing     | Complex browser feature testing |
 
 **Recommendation**: Start with Happy DOM. Only switch to jsdom if you encounter missing APIs.
 
@@ -427,7 +427,12 @@ This same pattern can be extended for DOM testing.
 ## Open Questions
 
 1. **Module loading strategy**: Should popup.js become an ES module, or should mortgageService.js be bundled for browser compatibility?
+   Make popup js an esmodule, if it will work with most modern browsers
 2. **Error display timing**: Should errors clear on input change or only on next submit?
+   Errors should clear on input change
 3. **Rate fetching integration**: The allowableRates are already fetched - need to ensure they're passed to MortgageService correctly
+   Yes we need to ensure they are passed to MortgageService correctly
 4. **Slider inputs**: How should validation errors appear for range sliders (buydown fields)?
+  Currently we limit interest rate buydown to 1.5% and we should make sure that stays the same. The Principal buydown currently has no limit
 5. **Real-time validation**: Should validation run on every keystroke or only on submit?
+   Every field should wait on submit EXCEPT the sliders, they update the calcuation as they are slid right now and that behavior should stay the same.
