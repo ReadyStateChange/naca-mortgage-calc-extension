@@ -1,3 +1,5 @@
+import { MortgageCalculator } from "../js/calculator.js";
+
 const RATE_CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 document.addEventListener("DOMContentLoaded", async () => {

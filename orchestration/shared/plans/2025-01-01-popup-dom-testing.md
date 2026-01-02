@@ -391,17 +391,17 @@ describe("formatCurrency", () => {
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] All unit tests pass: `bun test`
-- [ ] No import/export errors
+- [x] All unit tests pass: `bun test`
+- [x] No import/export errors
 
 #### Manual Verification:
-- [ ] mortgageService.js contains no `Bun.file()` calls
-- [ ] calculator.js has `export { MortgageCalculator }` at end
-- [ ] popup.js has `import { MortgageCalculator }` at top
-- [ ] popup.html uses `<script type="module" src="popup.js"></script>`
-- [ ] popup.html has NO separate calculator.js script tag
-- [ ] `tests/helpers/calculatorLoader.js` is deleted
-- [ ] Extension still functions correctly in Chrome (load unpacked and test calculator)
+- [x] mortgageService.js contains no `Bun.file()` calls
+- [x] calculator.js has `export { MortgageCalculator }` at end
+- [x] popup.js has `import { MortgageCalculator }` at top
+- [x] popup.html uses `<script type="module" src="popup.js"></script>`
+- [x] popup.html has NO separate calculator.js script tag
+- [x] `tests/helpers/calculatorLoader.js` is deleted
+- [x] Extension still functions correctly in Chrome (load unpacked and test calculator)
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation before proceeding to Phase 2.
 
@@ -463,14 +463,14 @@ describe("Test Environment", () => {
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] `bun test` runs without errors
-- [ ] DOM API tests pass
-- [ ] Happy DOM preload works correctly
+- [x] `bun test` runs without errors
+- [x] DOM API tests pass
+- [x] Happy DOM preload works correctly
 
 #### Manual Verification:
-- [ ] `bunfig.toml` exists in project root
-- [ ] `tests/happydom.ts` exists
-- [ ] Dependencies in package.json devDependencies
+- [x] `bunfig.toml` exists in project root
+- [x] `tests/happydom.ts` exists
+- [x] Dependencies in package.json devDependencies
 
 **Implementation Note**: After completing this phase and all verification passes, pause here for confirmation before proceeding to Phase 3.
 
@@ -646,12 +646,12 @@ export async function waitForText(text) {
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] Helper files have no syntax errors
-- [ ] Imports resolve correctly
+- [x] Helper files have no syntax errors
+- [x] Imports resolve correctly
 
 #### Manual Verification:
-- [ ] `tests/helpers/popupLoader.js` exists
-- [ ] `tests/helpers/testingLibrary.js` exists
+- [x] `tests/helpers/popupLoader.js` exists
+- [x] `tests/helpers/testingLibrary.js` exists
 
 **Implementation Note**: After completing this phase, proceed to Phase 4.
 

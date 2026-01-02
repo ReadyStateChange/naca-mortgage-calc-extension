@@ -36,47 +36,35 @@ export function validatePrice(value) {
   return { ok: true, data: num };
 }
 
+const VALID_TERMS = [15, 20, 30];
+
 /**
  * Validate mortgage rate - validates term and rate together
- * A valid mortgage rate is a combination where:
- * 1. The term is one of the allowable terms (keys in allowableRates)
- * 2. The rate is one of the allowable rates for that specific term
- *
  * @param {string} termValue - The loan term as a string
  * @param {string} rateValue - The interest rate as a string
- * @param {Object} allowableRates - Mapping of term to array of valid rates
- *   Example: { "15": [4.625, 5.625], "20": [4.65, 5.65], "30": [5.125, 6.125] }
  * @returns {ValidationResult}
  */
-export function validateMortgageRate(termValue, rateValue, allowableRates) {
+export function validateMortgageRate(termValue, rateValue) {
   const errors = [];
 
-  // Parse term
+  // Parse and validate term
   const term = parseInt(termValue, 10);
-  if (isNaN(term) || !allowableRates.hasOwnProperty(String(term))) {
-    const validTerms = Object.keys(allowableRates).join(", ");
+  if (isNaN(term) || !VALID_TERMS.includes(term)) {
     errors.push({
       field: "term",
-      message: `Invalid term. Must be ${validTerms.replace(/,([^,]*)$/, ", or$1")}`
+      message: "Invalid term. Must be 15, 20, or 30"
     });
-    // Can't validate rate without a valid term
     return { ok: false, errors };
   }
 
-  // Parse rate
+  // Parse and validate rate
   const rate = parseFloat(rateValue);
   if (isNaN(rate)) {
     errors.push({ field: "rate", message: "Rate must be a number" });
     return { ok: false, errors };
   }
-
-  // Check if rate is in the allowable list for this term
-  const validRatesForTerm = allowableRates[String(term)];
-  if (!validRatesForTerm.includes(rate)) {
-    errors.push({
-      field: "rate",
-      message: `Invalid rate for ${term}-year term`
-    });
+  if (rate <= 0) {
+    errors.push({ field: "rate", message: "Rate must be positive" });
     return { ok: false, errors };
   }
 
@@ -138,15 +126,10 @@ export function validateNonNegative(value, fieldName) {
 
 /**
  * Validate all calculator inputs
- * Note: This function requires allowable mortgage rates to be passed in.
- * The rates are fetched from the API and passed through from the UI layer.
- *
  * @param {Object} raw - Raw input values (strings from form)
- * @param {Object} allowableRates - Mapping of term to array of valid rates
- *   Example: { "15": [4.625, 5.625], "20": [4.65, 5.65], "30": [5.125, 6.125] }
  * @returns {ValidationResult}
  */
-export function validateCalculatorInput(raw, allowableRates) {
+export function validateCalculatorInput(raw) {
   const errors = [];
   const data = {};
 
@@ -155,8 +138,8 @@ export function validateCalculatorInput(raw, allowableRates) {
   if (!priceResult.ok) errors.push(...priceResult.errors);
   else data.price = priceResult.data;
 
-  // Validate term and rate together (they are interdependent)
-  const mortgageRateResult = validateMortgageRate(raw.term, raw.rate, allowableRates);
+  // Validate term and rate together
+  const mortgageRateResult = validateMortgageRate(raw.term, raw.rate);
   if (!mortgageRateResult.ok) {
     errors.push(...mortgageRateResult.errors);
   } else {

@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-unused-vars
 class MortgageCalculator {
   constructor() {
     this.calcMethod = "payment";
@@ -30,9 +29,7 @@ class MortgageCalculator {
    * @returns {number}
    */
   calculateBaseMonthlyPayment(principal, rate, term) {
-    // Convert annual rate to monthly rate
     const monthlyRate = rate / 100 / 12;
-    // Convert term to number of payments
     const numberOfPayments = term * 12;
 
     return (
@@ -48,13 +45,9 @@ class MortgageCalculator {
    * @returns {number} The monthly tax amount
    */
   calculateMonthlyTax(principal, taxRate) {
-    // turn tax rate from per $1000 to per $1
     const taxRatePerDollar = taxRate / 1000;
-    // Calculate yearly tax amount
     const yearlyTax = principal * taxRatePerDollar;
-    // Calculate monthly tax amount
     const monthlyTax = yearlyTax / 12;
-    // Round to 2 decimal places
     return Math.round(monthlyTax);
   }
 
@@ -81,10 +74,8 @@ class MortgageCalculator {
     const monthlyRate = rate / 100 / 12;
     const numberOfPayments = term * 12;
 
-    // Initial guess for principal
     const principal = desiredMonthlyPayment * numberOfPayments;
 
-    // Binary search to find the correct principal
     let low = 0;
     let high = principal * 2;
     let iterations = 0;
@@ -327,3 +318,5 @@ class MortgageCalculator {
     }
   }
 }
+
+export { MortgageCalculator };

@@ -59,79 +59,59 @@ describe("validatePrice", () => {
 });
 
 describe("validateMortgageRate", () => {
-  // Allowable rates passed as parameter (simulates API-fetched rates)
-  const allowableRates = {
-    "15": [4.625, 5.625],
-    "20": [4.65, 5.65],
-    "30": [5.125, 6.125],
-  };
-
-  it("accepts valid term and rate combination", () => {
-    const result = validateMortgageRate("30", "5.125", allowableRates);
+  it("accepts valid term and rate", () => {
+    const result = validateMortgageRate("30", "6.125");
     expect(result.ok).toBe(true);
     expect(result.data.term).toBe(30);
-    expect(result.data.rate).toBe(5.125);
-  });
-
-  it("accepts all valid rates for 15-year term", () => {
-    expect(validateMortgageRate("15", "4.625", allowableRates).ok).toBe(true);
-    expect(validateMortgageRate("15", "5.625", allowableRates).ok).toBe(true);
-  });
-
-  it("accepts all valid rates for 20-year term", () => {
-    expect(validateMortgageRate("20", "4.65", allowableRates).ok).toBe(true);
-    expect(validateMortgageRate("20", "5.65", allowableRates).ok).toBe(true);
-  });
-
-  it("accepts all valid rates for 30-year term", () => {
-    expect(validateMortgageRate("30", "5.125", allowableRates).ok).toBe(true);
-    expect(validateMortgageRate("30", "6.125", allowableRates).ok).toBe(true);
+    expect(result.data.rate).toBe(6.125);
   });
 
   it("rejects invalid term", () => {
-    const result = validateMortgageRate("25", "5.125", allowableRates);
-    expect(result.ok).toBe(false);
-    expect(result.errors[0].field).toBe("term");
-    expect(result.errors[0].message).toBe("Invalid term. Must be 15, 20, or 30");
-  });
-
-  it("rejects rate not in allowable list for term", () => {
-    const result = validateMortgageRate("30", "4.625", allowableRates);
-    expect(result.ok).toBe(false);
-    expect(result.errors[0].field).toBe("rate");
-    expect(result.errors[0].message).toBe("Invalid rate for 30-year term");
-  });
-
-  it("rejects non-numeric term", () => {
-    const result = validateMortgageRate("abc", "5.125", allowableRates);
+    const result = validateMortgageRate("25", "6.125");
     expect(result.ok).toBe(false);
     expect(result.errors[0].field).toBe("term");
   });
 
   it("rejects non-numeric rate", () => {
-    const result = validateMortgageRate("30", "abc", allowableRates);
+    const result = validateMortgageRate("30", "abc");
     expect(result.ok).toBe(false);
     expect(result.errors[0].field).toBe("rate");
-    expect(result.errors[0].message).toBe("Rate must be a number");
+  });
+
+  it("rejects zero or negative rate", () => {
+    const result = validateMortgageRate("30", "0");
+    expect(result.ok).toBe(false);
+    expect(result.errors[0].field).toBe("rate");
+  });
+
+  it("accepts valid 15-year term", () => {
+    const result = validateMortgageRate("15", "5.5");
+    expect(result.ok).toBe(true);
+    expect(result.data.term).toBe(15);
+  });
+
+  it("accepts valid 20-year term", () => {
+    const result = validateMortgageRate("20", "5.5");
+    expect(result.ok).toBe(true);
+    expect(result.data.term).toBe(20);
+  });
+
+  it("rejects non-numeric term", () => {
+    const result = validateMortgageRate("abc", "5.125");
+    expect(result.ok).toBe(false);
+    expect(result.errors[0].field).toBe("term");
   });
 
   it("rejects empty term", () => {
-    const result = validateMortgageRate("", "5.125", allowableRates);
+    const result = validateMortgageRate("", "5.125");
     expect(result.ok).toBe(false);
     expect(result.errors[0].field).toBe("term");
   });
 
   it("rejects empty rate", () => {
-    const result = validateMortgageRate("30", "", allowableRates);
+    const result = validateMortgageRate("30", "");
     expect(result.ok).toBe(false);
     expect(result.errors[0].field).toBe("rate");
-  });
-
-  it("handles rates with floating point precision", () => {
-    // Ensure 5.125 matches even if passed as string
-    const result = validateMortgageRate("30", "5.125", allowableRates);
-    expect(result.ok).toBe(true);
-    expect(result.data.rate).toBe(5.125);
   });
 });
 
@@ -236,17 +216,10 @@ describe("validateNonNegative", () => {
 });
 
 describe("validateCalculatorInput", () => {
-  // Allowable rates passed as parameter (simulates API-fetched rates)
-  const allowableRates = {
-    "15": [4.625, 5.625],
-    "20": [4.65, 5.65],
-    "30": [5.125, 6.125],
-  };
-
   const validInput = {
     price: "2000",
     term: "30",
-    rate: "6.125",  // Must be a valid rate for term 30
+    rate: "6.125",
     tax: "15",
     insurance: "50",
     hoaFee: "0",
@@ -254,7 +227,7 @@ describe("validateCalculatorInput", () => {
   };
 
   it("accepts valid complete input", () => {
-    const result = validateCalculatorInput(validInput, allowableRates);
+    const result = validateCalculatorInput(validInput);
     expect(result.ok).toBe(true);
     expect(result.data.price).toBe(2000);
     expect(result.data.term).toBe(30);
@@ -274,7 +247,7 @@ describe("validateCalculatorInput", () => {
       insurance: "50",
       hoaFee: "0",
       principalBuydown: "0",
-    }, allowableRates);
+    });
     expect(result.ok).toBe(false);
     expect(result.errors.length).toBeGreaterThanOrEqual(3); // price, term, tax at minimum
   });
@@ -283,8 +256,8 @@ describe("validateCalculatorInput", () => {
     const result = validateCalculatorInput({
       ...validInput,
       price: "",
-      rate: "9.99",  // invalid rate for term 30
-    }, allowableRates);
+      rate: "0",  // invalid rate (zero)
+    });
     const errorFields = result.errors.map((e) => e.field);
     expect(errorFields).toContain("price");
     expect(errorFields).toContain("rate");
@@ -297,18 +270,16 @@ describe("validateCalculatorInput", () => {
       term: "30",
       rate: "6.125",
       // missing tax, insurance, hoaFee, principalBuydown
-    }, allowableRates);
+    });
     expect(result.ok).toBe(false);
   });
 
-  it("validates term and rate together", () => {
-    // Valid rate for term 15, but using term 30
+  it("validates term correctly", () => {
     const result = validateCalculatorInput({
       ...validInput,
-      term: "30",
-      rate: "4.625",  // Valid for 15-year, invalid for 30-year
-    }, allowableRates);
+      term: "25",  // invalid term
+    });
     expect(result.ok).toBe(false);
-    expect(result.errors.some(e => e.field === "rate")).toBe(true);
+    expect(result.errors.some(e => e.field === "term")).toBe(true);
   });
 });

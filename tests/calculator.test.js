@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "bun:test";
-import { MortgageCalculator } from "./helpers/calculatorLoader.js";
+import { MortgageCalculator } from "../js/calculator.js";
 
 describe("MortgageCalculator", () => {
   let calculator;
@@ -24,8 +24,6 @@ describe("MortgageCalculator", () => {
     });
 
     it("returns NaN for 0% interest rate (edge case)", () => {
-      // At 0% interest, the formula divides by zero resulting in NaN
-      // (This is a known limitation of the current implementation)
       const payment = calculator.calculateBaseMonthlyPayment(360000, 0, 30);
       expect(payment).toBeNaN();
     });
@@ -47,15 +45,11 @@ describe("MortgageCalculator", () => {
 
   describe("calculateInterestRateBuydown", () => {
     it("calculates buydown cost correctly for 30-year", () => {
-      // 1 point = 1/6% reduction for 30 year
-      // 0.5% reduction = 3 points = 3% of $300k = $9000
       const cost = calculator.calculateInterestRateBuydown(300000, 6.5, 6.0, 30);
       expect(cost).toBeCloseTo(9000, 0);
     });
 
     it("calculates buydown cost correctly for 15-year", () => {
-      // 1 point = 1/4% reduction for 15 year
-      // 0.5% reduction = 2 points = 2% of $300k = $6000
       const cost = calculator.calculateInterestRateBuydown(300000, 6.5, 6.0, 15);
       expect(cost).toBeCloseTo(6000, 0);
     });
@@ -219,7 +213,6 @@ describe("MortgageCalculator", () => {
         principalBuydown: 50000,
       });
 
-      // With buydown, can afford higher purchase price for same payment
       expect(withBuydown.purchasePrice).toBeGreaterThan(withoutBuydown.purchasePrice);
     });
   });
