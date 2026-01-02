@@ -17,6 +17,18 @@ INCLUDE_FILES=("manifest.json")
 # Change to the project root directory
 cd "$PROJECT_ROOT" || exit 1
 
+# Bump version in manifest.json
+MANIFEST="manifest.json"
+CURRENT_VERSION=$(grep -o '"version": "[^"]*"' "$MANIFEST" | grep -o '[0-9.]*')
+# Split version and increment last part
+IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+LAST_INDEX=$((${#VERSION_PARTS[@]} - 1))
+VERSION_PARTS[$LAST_INDEX]=$((VERSION_PARTS[$LAST_INDEX] + 1))
+NEW_VERSION=$(IFS='.'; echo "${VERSION_PARTS[*]}")
+# Update manifest
+sed -i '' "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" "$MANIFEST"
+echo "Bumped version: $CURRENT_VERSION → $NEW_VERSION"
+
 # Check if an old zip file exists and remove it
 if [ -f "$OUTPUT_ZIP" ]; then
   echo "Removing existing $OUTPUT_ZIP..."

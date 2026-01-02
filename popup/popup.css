@@ -285,6 +285,35 @@ button:hover {
   box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
 }
 
+button.has-error {
+  background-color: #dc3545;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.3);
+}
+
+button.has-error:hover {
+  background-color: #c82333;
+}
+
+.button-error-messages {
+  color: #dc3545;
+  font-size: 0.85em;
+  margin-top: 8px;
+  display: none;
+}
+
+.button-error-messages.visible {
+  display: block;
+}
+
+.button-error-messages ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.button-error-messages li {
+  margin-bottom: 2px;
+}
+
 .help-text {
   font-size: 0.8em;
   color: #666;

@@ -1,11 +1,16 @@
-import { calculateMortgage, recalculateMortgage, formatCurrency, calculateInterestRateBuydown } from "../js/mortgageService.js";
+import {
+  calculateMortgage,
+  recalculateMortgage,
+  formatCurrency,
+  calculateInterestRateBuydown,
+} from "../js/mortgageService.js";
 
 const RATE_CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Get DOM elements
   const calcMethodInputs = document.querySelectorAll(
-    'input[name="calcMethod"]',
+    'input[name="calcMethod"]'
   );
   const priceInput = document.getElementById("price");
   const termSelect = document.getElementById("term");
@@ -22,22 +27,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   const insuranceAmountDisplay = document.getElementById("insuranceAmount");
   const hoaFeeDisplay = document.getElementById("hoaFeeDisplay");
   const interestRateBuydownSlider = document.getElementById(
-    "interestRateBuydown",
+    "interestRateBuydown"
   );
   const interestRateBuydownValue = document.getElementById(
-    "interestRateBuydownValue",
+    "interestRateBuydownValue"
   );
   const principalBuydownSlider = document.getElementById("principalBuydown");
   const principalBuydownValue = document.getElementById(
-    "principalBuydownValue",
+    "principalBuydownValue"
   );
 
   const interestRateBuydownCostDisplay = document.getElementById(
-    "interestRateBuydownCost",
+    "interestRateBuydownCost"
   );
   const principalBuydownCostDisplay = document.getElementById(
-    "principalBuydownCost",
+    "principalBuydownCost"
   );
+  const buttonErrorsDisplay = document.getElementById("button-errors");
 
   // State to track if initial calculation has passed validation
   let hasValidatedInputs = false;
@@ -55,6 +61,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         errorEl.closest(".input-group")?.classList.add("has-error");
       }
     });
+    // Also add error state to calculate button and show errors below it
+    if (errors.length > 0) {
+      calculateButton.classList.add("has-error");
+      const fieldLabels = {
+        price: "Price/Payment",
+        term: "Loan Term",
+        rate: "Interest Rate",
+        tax: "Property Tax",
+        insurance: "Insurance",
+        hoaFee: "HOA/Condo Fee",
+        principalBuydown: "Principal Buydown",
+      };
+      const errorList = errors
+        .map((e) => `<li>${fieldLabels[e.field] || e.field}: ${e.message}</li>`)
+        .join("");
+      buttonErrorsDisplay.innerHTML = `<ul>${errorList}</ul>`;
+      buttonErrorsDisplay.classList.add("visible");
+    }
   }
 
   function clearValidationErrors() {
@@ -65,6 +89,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelectorAll(".input-group.has-error").forEach((el) => {
       el.classList.remove("has-error");
     });
+    calculateButton.classList.remove("has-error");
+    buttonErrorsDisplay.innerHTML = "";
+    buttonErrorsDisplay.classList.remove("visible");
   }
 
   function clearFieldError(fieldName) {
@@ -74,6 +101,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       errorEl.classList.remove("visible");
       errorEl.closest(".input-group")?.classList.remove("has-error");
     }
+    // Also clear button error state when user starts editing
+    calculateButton.classList.remove("has-error");
+    buttonErrorsDisplay.innerHTML = "";
+    buttonErrorsDisplay.classList.remove("visible");
   }
 
   // Clear errors on input change
@@ -82,7 +113,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     termSelect.addEventListener("change", () => clearFieldError("term"));
     rateInput.addEventListener("change", () => clearFieldError("rate"));
     taxInput.addEventListener("change", () => clearFieldError("tax"));
-    insuranceInput.addEventListener("input", () => clearFieldError("insurance"));
+    insuranceInput.addEventListener("input", () =>
+      clearFieldError("insurance")
+    );
     hoaFeeInput.addEventListener("input", () => clearFieldError("hoaFee"));
   }
 
@@ -93,7 +126,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   function updateDisplayResultsFromRaw(rawData) {
     monthlyPaymentDisplay.textContent = formatCurrency(rawData.monthlyPayment);
     purchasePriceDisplay.textContent = formatCurrency(rawData.purchasePrice);
-    principalInterestDisplay.textContent = formatCurrency(rawData.principalInterest);
+    principalInterestDisplay.textContent = formatCurrency(
+      rawData.principalInterest
+    );
     taxesDisplay.textContent = formatCurrency(rawData.taxes);
     insuranceAmountDisplay.textContent = formatCurrency(rawData.insurance);
     hoaFeeDisplay.textContent = formatCurrency(rawData.hoaFee);
@@ -106,12 +141,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   function updatePrincipalBuydownSliderMax() {
     const purchasePriceText = purchasePriceDisplay.textContent.replace(
       /[$,]/g,
-      "",
+      ""
     );
     const maxPrincipalBuydown = parseFloat(purchasePriceText) || 0;
-    principalBuydownSlider.max = maxPrincipalBuydown > 0
-      ? maxPrincipalBuydown
-      : 0;
+    principalBuydownSlider.max =
+      maxPrincipalBuydown > 0 ? maxPrincipalBuydown : 0;
 
     // Also ensure the current value doesn't exceed the new max
     if (parseFloat(principalBuydownSlider.value) > maxPrincipalBuydown) {
@@ -198,7 +232,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           rate: parseFloat(interestRateBuydownSlider.value) || 0,
         };
 
-        const results = recalculateMortgage(recalculateInputs, currentCalcMethod);
+        const results = recalculateMortgage(
+          recalculateInputs,
+          currentCalcMethod
+        );
         updateDisplayResultsFromRaw(results);
       }
     }, 50); // Small delay to ensure DOM updates
@@ -236,9 +273,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   calcMethodInputs.forEach((input) => {
     input.addEventListener("change", (e) => {
       currentCalcMethod = e.target.value;
-      priceInput.placeholder = e.target.value === "payment"
-        ? "Enter desired monthly payment"
-        : "Enter purchase price";
+      priceInput.placeholder =
+        e.target.value === "payment"
+          ? "Enter desired monthly payment"
+          : "Enter purchase price";
 
       // Reset validation state when mode changes
       hasValidatedInputs = false;
@@ -295,7 +333,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const term = parseInt(termSelect.value);
     const purchasePriceText = purchasePriceDisplay.textContent.replace(
       /[$,]/g,
-      "",
+      ""
     );
     const principal = parseFloat(purchasePriceText) || 0;
 
@@ -328,15 +366,22 @@ document.addEventListener("DOMContentLoaded", async () => {
           rate: desiredRate,
         };
 
-        const recalculatedResults = recalculateMortgage(recalculateInputs, currentCalcMethod);
+        const recalculatedResults = recalculateMortgage(
+          recalculateInputs,
+          currentCalcMethod
+        );
 
         // Update the display based on the calculation method
         if (currentCalcMethod === "price") {
           updateDisplayResultsFromRaw(recalculatedResults);
-          purchasePriceDisplay.textContent = formatCurrency(recalculateInputs.price);
+          purchasePriceDisplay.textContent = formatCurrency(
+            recalculateInputs.price
+          );
         } else {
           updateDisplayResultsFromRaw(recalculatedResults);
-          monthlyPaymentDisplay.textContent = formatCurrency(recalculateInputs.price);
+          monthlyPaymentDisplay.textContent = formatCurrency(
+            recalculateInputs.price
+          );
         }
 
         // Update principal buydown slider max value after recalculation
@@ -362,15 +407,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       };
 
       // Recalculate using MortgageService (no validation)
-      const recalculatedResults = recalculateMortgage(recalculateInputs, currentCalcMethod);
+      const recalculatedResults = recalculateMortgage(
+        recalculateInputs,
+        currentCalcMethod
+      );
 
       // Update the display based on the calculation method
       if (currentCalcMethod === "price") {
         updateDisplayResultsFromRaw(recalculatedResults);
-        purchasePriceDisplay.textContent = formatCurrency(recalculateInputs.price);
+        purchasePriceDisplay.textContent = formatCurrency(
+          recalculateInputs.price
+        );
       } else {
         updateDisplayResultsFromRaw(recalculatedResults);
-        monthlyPaymentDisplay.textContent = formatCurrency(recalculateInputs.price);
+        monthlyPaymentDisplay.textContent = formatCurrency(
+          recalculateInputs.price
+        );
       }
 
       // Update principal buydown slider max value after recalculation
@@ -380,7 +432,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const originalInterestRate = parseFloat(rateInput.value);
       const currentPurchasePriceText = purchasePriceDisplay.textContent.replace(
         /[$,]/g,
-        "",
+        ""
       );
       const currentPrincipal = parseFloat(currentPurchasePriceText) || 0;
       if (currentPrincipal > 0) {
@@ -390,7 +442,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           desiredRate,
           term
         );
-        interestRateBuydownCostDisplay.textContent = formatCurrency(interestBuydownCost);
+        interestRateBuydownCostDisplay.textContent =
+          formatCurrency(interestBuydownCost);
       } else {
         interestRateBuydownCostDisplay.textContent = "$0";
       }
@@ -500,21 +553,18 @@ async function performMsaLookup(address) {
     "https://naca-mortgage-calc-extension-production.up.railway.app";
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/msa-lookup`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ address }),
+    const response = await fetch(`${API_BASE_URL}/api/msa-lookup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({ address }),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        errorData.error || `HTTP error! status: ${response.status}`,
+        errorData.error || `HTTP error! status: ${response.status}`
       );
     }
 
@@ -553,20 +603,17 @@ async function getLatestMortgageRates() {
   // If no valid cache, fetch fresh rates
   console.log("Fetching fresh mortgage rates from Railway API");
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/rates`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const response = await fetch(`${API_BASE_URL}/api/rates`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        errorData.error || `HTTP error! status: ${response.status}`,
+        errorData.error || `HTTP error! status: ${response.status}`
       );
     }
 
@@ -579,15 +626,15 @@ async function getLatestMortgageRates() {
 
     // Format and cache the new rates
     const formattedRates = {
-      "15": [
+      15: [
         parseFloat(data.fifteen_year_rate),
         parseFloat(data.fifteen_year_rate) + 1,
       ],
-      "20": [
+      20: [
         parseFloat(data.twenty_year_rate),
         parseFloat(data.twenty_year_rate) + 1,
       ],
-      "30": [
+      30: [
         parseFloat(data.thirty_year_rate),
         parseFloat(data.thirty_year_rate) + 1,
       ],
@@ -600,7 +647,7 @@ async function getLatestMortgageRates() {
         JSON.stringify({
           rates: formattedRates,
           timestamp: Date.now(),
-        }),
+        })
       );
       console.log("Mortgage rates cached successfully");
     } catch (error) {
@@ -617,5 +664,5 @@ async function getLatestMortgageRates() {
 
 // Helper function to return default rates
 function getDefaultRates() {
-  return { "15": [5, 6], "20": [5.5, 6.5], "30": [6, 7] };
+  return { 15: [5, 6], 20: [5.5, 6.5], 30: [6, 7] };
 }
