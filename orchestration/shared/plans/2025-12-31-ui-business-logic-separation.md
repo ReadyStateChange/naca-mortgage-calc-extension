@@ -6,15 +6,15 @@ Separate the UI layer from business logic in the Chrome extension popup by havin
 
 ## Current State Analysis
 
-### What Exists Now
-- `popup/popup.js` uses `MortgageCalculator` directly with `calculator.calculate(inputs)`
+### What Exists Now (Updated after DOM Testing Plan Phase 1)
+- `popup/popup.js` is an ES module that imports `MortgageCalculator` directly
+- `popup/popup.js` still uses `calculator.calculate(inputs)` directly (not via MortgageService)
 - Invalid inputs silently default to 0 (no validation feedback)
-- `js/mortgageService.js` exists but uses `Bun.file()` (Bun-specific, won't work in browser)
-- `js/inputValidator.js` is a pure ES module (browser-compatible)
-- `js/calculator.js` is a browser script with `calculate()` (formatted strings) and `calculateRaw()` (raw numbers)
+- `js/mortgageService.js` is browser-compatible with 4 exports: `calculateMortgage`, `recalculateMortgage`, `formatCurrency`, `calculateInterestRateBuydown`
+- `js/inputValidator.js` has simplified `validateMortgageRate` (no `allowableRates` param)
+- `js/calculator.js` is an ES module with `export { MortgageCalculator }`
 
 ### Key Discoveries:
-- MortgageService validates rate against `allowableRates`, but slider rate isn't in that list (`js/inputValidator.js:73-81`)
 - Calculator has separate `calculate()` and `calculateRaw()` methods (`js/calculator.js:181-256`, `js/calculator.js:263-328`)
 - Slider handlers recalculate on every input event (`popup/popup.js:217-299`, `popup/popup.js:302-371`)
 - Buydown cost calculation is separate from mortgage calculation (`js/calculator.js:128-168`)
@@ -22,15 +22,17 @@ Separate the UI layer from business logic in the Chrome extension popup by havin
 ## Desired End State
 
 After implementation:
-1. **popup.js is an ES module** that imports from mortgageService.js
-2. **MortgageCalculator is encapsulated** - only accessible through MortgageService, not globally
-3. **MortgageService has three entry points:**
+1. ✅ **popup.js is an ES module** (completed in DOM testing plan)
+2. ✅ **MortgageCalculator is an ES module export** (completed in DOM testing plan)
+3. ✅ **MortgageService has four entry points** (completed in DOM testing plan):
    - `calculateMortgage()` - validates all inputs, then calculates (for Calculate button)
    - `recalculateMortgage()` - skips validation, just calculates (for sliders after initial validation)
    - `calculateInterestRateBuydown()` - skips validation, calculates buydown cost (for slider updates)
-4. **Validation errors display inline** next to the relevant input field
-5. **Errors clear on input change** for better UX
-6. **Raw numbers returned from service** - UI handles all formatting
+   - `formatCurrency()` - formats numbers as currency strings
+4. **popup.js uses MortgageService** instead of MortgageCalculator directly (Phase 3-4)
+5. **Validation errors display inline** next to the relevant input field (Phase 2-3)
+6. **Errors clear on input change** for better UX (Phase 5)
+7. **Raw numbers returned from service** - UI handles all formatting (Phase 3-4)
 
 ### Verification:
 - All existing tests pass: `bun test`
@@ -49,7 +51,9 @@ After implementation:
 
 ---
 
-## Phase 1: Make MortgageService Browser-Compatible and Encapsulate Calculator
+## Phase 1: Make MortgageService Browser-Compatible and Encapsulate Calculator ✅ COMPLETED
+
+> **Note**: This phase was completed as part of the DOM testing plan (`2025-01-01-popup-dom-testing.md` Phase 1). All changes below have been implemented.
 
 ### Overview
 Refactor mortgageService.js to work in the browser by removing Bun-specific code and simplifying rate validation. Convert calculator.js to an ES module so MortgageCalculator is only accessible through MortgageService.
@@ -408,15 +412,21 @@ describe("validateCalculatorInput", () => {
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] All unit tests pass: `bun test`
-- [ ] No linting errors (if linter is configured)
+- [x] All unit tests pass: `bun test`
+- [x] No linting errors (if linter is configured)
+
+#### Test Coverage Verification:
+- [x] `tests/inputValidator.test.js` has `validateMortgageRate` tests without `allowableRates` parameter
+- [x] `tests/inputValidator.test.js` covers: valid terms (15/20/30), invalid term, non-numeric rate, zero/negative rate
+- [x] `tests/mortgageService.test.js` imports from `../js/mortgageService.js` (ES module)
+- [x] `tests/mortgageService.test.js` has tests for all 4 exports: `calculateMortgage`, `recalculateMortgage`, `formatCurrency`, `calculateInterestRateBuydown`
 
 #### Manual Verification:
-- [ ] mortgageService.js no longer contains Bun-specific code
-- [ ] calculator.js exports MortgageCalculator as ES module
-- [ ] mortgageService.js imports MortgageCalculator (not relying on global)
+- [x] mortgageService.js no longer contains Bun-specific code
+- [x] calculator.js exports MortgageCalculator as ES module
+- [x] mortgageService.js imports MortgageCalculator (not relying on global)
 
-**Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation before proceeding to Phase 2.
+**Status**: ✅ Completed via DOM testing plan. Proceed to Phase 2.
 
 ---
 
@@ -524,47 +534,47 @@ Add at the end of the file:
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] HTML is valid (no syntax errors)
-- [ ] CSS is valid (no syntax errors)
+- [x] HTML is valid (no syntax errors)
+- [x] CSS is valid (no syntax errors)
 
 #### Manual Verification:
-- [ ] Load the extension popup and verify no visual changes (errors are hidden by default)
-- [ ] Inspect elements to confirm error spans exist with correct IDs
+- [x] Load the extension popup and verify no visual changes (errors are hidden by default)
+- [x] Inspect elements to confirm error spans exist with correct IDs
 
-**Implementation Note**: After completing this phase and all verification passes, pause here for confirmation before proceeding to Phase 3.
+**Status**: ✅ Completed. Proceed to Phase 3.
 
 ---
 
 ## Phase 3: Convert popup.js to ES Module and Integrate MortgageService
 
 ### Overview
-Convert popup.js to an ES module, import MortgageService, and replace the calculate button handler.
+popup.js is already an ES module (from DOM testing plan). Now integrate MortgageService by replacing direct MortgageCalculator usage with MortgageService calls, and replace the calculate button handler.
 
 ### Changes Required:
 
-#### 1. Update popup.html Script Tags
-**File**: `popup/popup.html`
+> **Note**: popup.html script tags already updated in DOM testing plan. popup.js is already an ES module with `import { MortgageCalculator } from "../js/calculator.js"`. We now need to switch to MortgageService imports.
 
-Change the script section (lines 270-272):
-
-```html
-<script type="module" src="popup.js"></script>
-```
-
-Note: calculator.js script tag is **removed entirely**. MortgageCalculator is now encapsulated within MortgageService and imported as an ES module. popup.js imports from mortgageService.js, which imports from calculator.js.
-
-#### 2. Add Imports and Error Display Functions
+#### 1. Update Imports and Add Error Display Functions
 **File**: `popup/popup.js`
 
-Add at the very top of the file:
-
+**Replace the current import** at line 1:
 ```javascript
-import { calculateMortgage, recalculateMortgage, formatCurrency, calculateInterestRateBuydown } from "../js/mortgageService.js";
+// CHANGE FROM:
+import { MortgageCalculator } from "../js/calculator.js";
 
-const RATE_CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+// CHANGE TO:
+import { calculateMortgage, recalculateMortgage, formatCurrency, calculateInterestRateBuydown } from "../js/mortgageService.js";
 ```
 
-Add after the DOM element declarations (after line 40):
+The `RATE_CACHE_EXPIRY_MS` constant at line 3 remains unchanged.
+
+**Remove the calculator instantiation** at line 6:
+```javascript
+// DELETE THIS LINE:
+const calculator = new MortgageCalculator();
+```
+
+Add after the DOM element declarations (around line 40, after all `document.getElementById` calls):
 
 ```javascript
 // State to track if initial calculation has passed validation
@@ -605,7 +615,7 @@ function clearFieldError(fieldName) {
 }
 ```
 
-#### 3. Update Calculate Button Handler
+#### 2. Update Calculate Button Handler
 **File**: `popup/popup.js`
 
 Replace the calculate button handler (lines 200-214):
@@ -651,7 +661,7 @@ calculateButton.addEventListener("click", () => {
 });
 ```
 
-#### 4. Add Helper Function for Displaying Raw Results
+#### 3. Add Helper Function for Displaying Raw Results
 **File**: `popup/popup.js`
 
 Add after updateDisplayResults function:
@@ -671,7 +681,7 @@ function updateDisplayResultsFromRaw(rawData) {
 }
 ```
 
-#### 5. Update Calc Method Change Handler
+#### 4. Update Calc Method Change Handler
 **File**: `popup/popup.js`
 
 Update the calcMethodInputs handler (around line 187):
@@ -681,7 +691,7 @@ Update the calcMethodInputs handler (around line 187):
 calcMethodInputs.forEach((input) => {
   input.addEventListener("change", (e) => {
     currentCalcMethod = e.target.value;
-    calculator.setCalcMethod(e.target.value); // Keep for backward compat during transition
+    // NOTE: Remove calculator.setCalcMethod() - now handled by MortgageService
     priceInput.placeholder = e.target.value === "payment"
       ? "Enter desired monthly payment"
       : "Enter purchase price";
@@ -699,15 +709,20 @@ calcMethodInputs.forEach((input) => {
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] No JavaScript errors in browser console when loading popup
-- [ ] All existing tests still pass: `bun test`
+- [x] No JavaScript errors in browser console when loading popup
+- [x] All existing tests still pass: `bun test`
+- [x] `tests/popup.test.js` "State 2: Invalid Submission" tests pass - validates error display behavior:
+  - `shows error for empty price input` - checks `price-error` element shows "Required" with `.visible` class
+  - `calculates zero price input as valid` - confirms zero is accepted
 
 #### Manual Verification:
-- [ ] Click Calculate with empty price - error appears
-- [ ] Click Calculate with valid inputs - calculation displays correctly
-- [ ] Error clears when Calculate succeeds after fixing input
+- [x] popup.js imports from `mortgageService.js` (not `calculator.js`)
+- [x] popup.js has no `const calculator = new MortgageCalculator()` instantiation
+- [x] Click Calculate with empty price - error appears
+- [x] Click Calculate with valid inputs - calculation displays correctly
+- [x] Error clears when Calculate succeeds after fixing input
 
-**Implementation Note**: After completing this phase and all verification passes, pause here for confirmation before proceeding to Phase 4.
+**Status**: ✅ Completed. Proceed to Phase 4.
 
 ---
 
@@ -754,15 +769,10 @@ interestRateBuydownSlider.addEventListener("input", () => {
       ? `${desiredRate.toFixed(3)}% (1.5% cap reached)`
       : `${desiredRate.toFixed(3)}%`;
 
-    // Recalculate mortgage using MortgageService (no validation)
+    // Recalculate mortgage using MortgageService with lastValidInput and a new rate
     const recalculateInputs = {
-      price: parseFloat(priceInput.value) || 0,
-      term: term,
-      rate: desiredRate, // Use the (possibly capped) bought-down rate
-      tax: parseFloat(taxInput.value) || 0,
-      insurance: parseFloat(insuranceInput.value) || 0,
-      hoaFee: parseFloat(hoaFeeInput.value) || 0,
-      principalBuydown: parseFloat(principalBuydownSlider.value) || 0,
+      ...lastValidatedInputs,
+      rate: parseFloat(desiredRate)
     };
 
     const recalculatedResults = recalculateMortgage(recalculateInputs, currentCalcMethod);
@@ -794,20 +804,10 @@ principalBuydownSlider.addEventListener("input", () => {
   principalBuydownValue.textContent = formatCurrency(principalBuydown);
   principalBuydownCostDisplay.textContent = formatCurrency(principalBuydown);
 
-  // Get other current inputs
-  const term = parseInt(termSelect.value);
-  const desiredRate = parseFloat(interestRateBuydownSlider.value);
-  const tax = parseFloat(taxInput.value) || 0;
-  const insurance = parseFloat(insuranceInput.value) || 0;
-  const hoaFee = parseFloat(hoaFeeInput.value) || 0;
 
+  // Use lastValidatedInputs adding new principalBuydown
   const recalculateInputs = {
-    price: parseFloat(priceInput.value) || 0,
-    term: term,
-    rate: desiredRate,
-    tax: tax,
-    insurance: insurance,
-    hoaFee: hoaFee,
+    ...lastValidatedInputs,
     principalBuydown: principalBuydown,
   };
 
@@ -852,52 +852,44 @@ These handlers also trigger recalculations. Update them to use `recalculateMortg
 **Term change handler** (around line 129):
 ```javascript
 setTimeout(() => {
-  const inputs = {
-    price: parseFloat(priceInput.value) || 0,
+  // Use lastValidatedInputs with updated term
+  const recalculateInputs = {
+    ...lastValidatedInputs,
     term: parseInt(termSelect.value) || 30,
-    rate: parseFloat(interestRateBuydownSlider.value) || 0,
-    tax: parseFloat(taxInput.value) || 0,
-    insurance: parseFloat(insuranceInput.value) || 0,
-    hoaFee: parseFloat(hoaFeeInput.value) || 0,
-    principalBuydown: parseFloat(principalBuydownSlider.value) || 0,
   };
 
-  const results = recalculateMortgage(inputs, currentCalcMethod);
+  const results = recalculateMortgage(recalculateInputs, currentCalcMethod);
   updateDisplayResultsFromRaw(results);
 }, 50);
 ```
 
 **Rate change handler** (around line 169):
 ```javascript
-const inputs = {
-  price: parseFloat(priceInput.value) || 0,
-  term: parseInt(termSelect.value) || 30,
+// Use lastValidatedInputs with updated rate
+const recalculateInputs = {
+  ...lastValidatedInputs,
   rate: newRate,
-  tax: parseFloat(taxInput.value) || 0,
-  insurance: parseFloat(insuranceInput.value) || 0,
-  hoaFee: parseFloat(hoaFeeInput.value) || 0,
-  principalBuydown: parseFloat(principalBuydownSlider.value) || 0,
 };
 
-const results = recalculateMortgage(inputs, currentCalcMethod);
+const results = recalculateMortgage(recalculateInputs, currentCalcMethod);
 updateDisplayResultsFromRaw(results);
 ```
 
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] All tests pass: `bun test`
-- [ ] No console errors when using sliders
+- [x] All tests pass: `bun test`
+- [x] No console errors when using sliders
 
 #### Manual Verification:
-- [ ] Interest rate slider updates calculations in real-time
-- [ ] Principal buydown slider updates calculations in real-time
-- [ ] Changing term recalculates correctly
-- [ ] Changing rate recalculates correctly
-- [ ] 1.5% buydown cap is still enforced
-- [ ] popup.js contains no direct references to `MortgageCalculator` or `calculator.` - all calls go through MortgageService
+- [x] Interest rate slider updates calculations in real-time
+- [x] Principal buydown slider updates calculations in real-time
+- [x] Changing term recalculates correctly
+- [x] Changing rate recalculates correctly
+- [x] 1.5% buydown cap is still enforced
+- [x] `grep -n "MortgageCalculator\|calculator\." popup/popup.js` returns no matches (all calls go through MortgageService)
 
-**Implementation Note**: After completing this phase and all verification passes, pause here for confirmation before proceeding to Phase 5.
+**Status**: ✅ Completed. Proceed to Phase 5.
 
 ---
 
@@ -941,17 +933,40 @@ setupErrorClearingListeners();
 
 Move the `setupErrorClearingListeners()` call to after all DOM elements are declared (around line 40).
 
+#### 2. Add Test for Error Clearing Behavior
+**File**: `tests/popup.test.js`
+
+Add to "State 2: Invalid Submission" describe block:
+
+```javascript
+    it("clears error when user starts typing", async () => {
+      const priceInput = document.getElementById("price");
+      const calculateBtn = document.getElementById("calculate");
+      const priceError = document.getElementById("price-error");
+
+      // Trigger error
+      priceInput.value = "";
+      await user.click(calculateBtn);
+      expect(priceError.classList.contains("visible")).toBe(true);
+
+      // Start typing - error should clear
+      await user.type(priceInput, "1");
+      expect(priceError.classList.contains("visible")).toBe(false);
+    });
+```
+
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] All tests pass: `bun test`
+- [x] All tests pass: `bun test`
+- [x] `tests/popup.test.js` includes "clears error when user starts typing" test
 
 #### Manual Verification:
-- [ ] Enter invalid price, click Calculate (error appears)
-- [ ] Start typing in price field - error clears immediately
-- [ ] Same behavior for all input fields
+- [x] Enter invalid price, click Calculate (error appears)
+- [x] Start typing in price field - error clears immediately
+- [x] Same behavior for all input fields
 
-**Implementation Note**: After completing this phase and all verification passes, the main implementation is complete.
+**Status**: ✅ Completed. All phases complete.
 
 ---
 
@@ -988,6 +1003,7 @@ Move the `setupErrorClearingListeners()` call to after all DOM elements are decl
 ## References
 
 - Original research: `orchestration/shared/research/2025-12-29-mortgage-service-extension-integration-and-dom-testing.md`
+- **Prerequisite plan (Phase 1 completed)**: `orchestration/shared/plans/2025-01-01-popup-dom-testing.md`
 - MortgageService: `js/mortgageService.js`
 - InputValidator: `js/inputValidator.js`
 - Calculator: `js/calculator.js`

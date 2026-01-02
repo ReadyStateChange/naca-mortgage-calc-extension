@@ -30,6 +30,7 @@
             <div class="input-group">
               <label for="price">Purchase Price / Payment</label>
               <input type="text" id="price" placeholder="Enter amount" />
+              <span class="error-message" id="price-error"></span>
             </div>
 
             <div class="input-group">
@@ -39,6 +40,7 @@
                 <option value="20">20 Years</option>
                 <option value="15">15 Years</option>
               </select>
+              <span class="error-message" id="term-error"></span>
             </div>
           </div>
 
@@ -48,6 +50,7 @@
               <select id="rate">
                 <!-- Interest rates will be populated dynamically based on term -->
               </select>
+              <span class="error-message" id="rate-error"></span>
             </div>
 
             <div class="input-group">
@@ -108,6 +111,7 @@
                 <option value="30">30%</option>
                 <option value="30.5">30.5%</option>
               </select>
+              <span class="error-message" id="tax-error"></span>
             </div>
           </div>
 
@@ -119,6 +123,7 @@
                 id="insurance"
                 placeholder="Enter insurance amount"
               />
+              <span class="error-message" id="insurance-error"></span>
             </div>
 
             <div class="input-group">
@@ -128,6 +133,7 @@
                 id="hoaFee"
                 placeholder="Enter HOA/Condo fee"
               />
+              <span class="error-message" id="hoaFee-error"></span>
             </div>
 
             <div class="input-group">

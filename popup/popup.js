@@ -1,10 +1,8 @@
-import { MortgageCalculator } from "../js/calculator.js";
+import { calculateMortgage, recalculateMortgage, formatCurrency, calculateInterestRateBuydown } from "../js/mortgageService.js";
 
 const RATE_CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const calculator = new MortgageCalculator();
-
   // Get DOM elements
   const calcMethodInputs = document.querySelectorAll(
     'input[name="calcMethod"]',
@@ -40,6 +38,69 @@ document.addEventListener("DOMContentLoaded", async () => {
   const principalBuydownCostDisplay = document.getElementById(
     "principalBuydownCost",
   );
+
+  // State to track if initial calculation has passed validation
+  let hasValidatedInputs = false;
+  let lastValidatedInputs = null;
+  let currentCalcMethod = "payment";
+
+  // Error display functions
+  function showValidationErrors(errors) {
+    clearValidationErrors();
+    errors.forEach((error) => {
+      const errorEl = document.getElementById(`${error.field}-error`);
+      if (errorEl) {
+        errorEl.textContent = error.message;
+        errorEl.classList.add("visible");
+        errorEl.closest(".input-group")?.classList.add("has-error");
+      }
+    });
+  }
+
+  function clearValidationErrors() {
+    document.querySelectorAll(".error-message").forEach((el) => {
+      el.textContent = "";
+      el.classList.remove("visible");
+    });
+    document.querySelectorAll(".input-group.has-error").forEach((el) => {
+      el.classList.remove("has-error");
+    });
+  }
+
+  function clearFieldError(fieldName) {
+    const errorEl = document.getElementById(`${fieldName}-error`);
+    if (errorEl) {
+      errorEl.textContent = "";
+      errorEl.classList.remove("visible");
+      errorEl.closest(".input-group")?.classList.remove("has-error");
+    }
+  }
+
+  // Clear errors on input change
+  function setupErrorClearingListeners() {
+    priceInput.addEventListener("input", () => clearFieldError("price"));
+    termSelect.addEventListener("change", () => clearFieldError("term"));
+    rateInput.addEventListener("change", () => clearFieldError("rate"));
+    taxInput.addEventListener("change", () => clearFieldError("tax"));
+    insuranceInput.addEventListener("input", () => clearFieldError("insurance"));
+    hoaFeeInput.addEventListener("input", () => clearFieldError("hoaFee"));
+  }
+
+  // Initialize error clearing listeners
+  setupErrorClearingListeners();
+
+  // Helper function to update display from raw numbers
+  function updateDisplayResultsFromRaw(rawData) {
+    monthlyPaymentDisplay.textContent = formatCurrency(rawData.monthlyPayment);
+    purchasePriceDisplay.textContent = formatCurrency(rawData.purchasePrice);
+    principalInterestDisplay.textContent = formatCurrency(rawData.principalInterest);
+    taxesDisplay.textContent = formatCurrency(rawData.taxes);
+    insuranceAmountDisplay.textContent = formatCurrency(rawData.insurance);
+    hoaFeeDisplay.textContent = formatCurrency(rawData.hoaFee);
+
+    // Update principal buydown slider max value
+    updatePrincipalBuydownSliderMax();
+  }
 
   // Helper function to update the principal buydown slider's max value
   function updatePrincipalBuydownSliderMax() {
@@ -129,26 +190,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Trigger a recalculation with the new defaults
     // Use a small timeout to ensure rateInput has updated from updateInterestRateOptions
     setTimeout(() => {
-      // Get current values (rate will be the new default)
-      const inputs = {
-        price: parseFloat(priceInput.value) || 0,
-        term: parseInt(termSelect.value) || 30,
-        rate: parseFloat(interestRateBuydownSlider.value) || 0, // Use the reset slider value
-        tax: parseFloat(taxInput.value) || 0,
-        insurance: parseFloat(insuranceInput.value) || 0,
-        hoaFee: parseFloat(hoaFeeInput.value) || 0,
-        principalBuydown: parseFloat(principalBuydownSlider.value) || 0,
-      };
+      // Use lastValidatedInputs with updated term if available
+      if (hasValidatedInputs && lastValidatedInputs) {
+        const recalculateInputs = {
+          ...lastValidatedInputs,
+          term: parseInt(termSelect.value) || 30,
+          rate: parseFloat(interestRateBuydownSlider.value) || 0,
+        };
 
-      const results = calculator.calculate(inputs);
-
-      // Update main results display
-      updateDisplayResults(results);
-
-      // Buydown cost is implicitly reset to $0 because the slider rate now matches the base rate
-      // But we explicitly set it to $0 above for immediate feedback.
-      // If needed, we could re-calculate it here based on the new price/principal if the base rate
-      // wasn't the max (though updateInterestRateOptions should ensure it is).
+        const results = recalculateMortgage(recalculateInputs, currentCalcMethod);
+        updateDisplayResultsFromRaw(results);
+      }
     }, 50); // Small delay to ensure DOM updates
   });
 
@@ -168,30 +220,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     interestRateBuydownCostDisplay.textContent = "$0";
     principalBuydownCostDisplay.textContent = "$0";
 
-    // Trigger a recalculation immediately with the new rate
-    const inputs = {
-      price: parseFloat(priceInput.value) || 0,
-      term: parseInt(termSelect.value) || 30,
-      rate: newRate, // Use the newly selected rate
-      tax: parseFloat(taxInput.value) || 0,
-      insurance: parseFloat(insuranceInput.value) || 0,
-      hoaFee: parseFloat(hoaFeeInput.value) || 0,
-      principalBuydown: parseFloat(principalBuydownSlider.value) || 0,
-    };
+    // Recalculate if we have validated inputs
+    if (hasValidatedInputs && lastValidatedInputs) {
+      const recalculateInputs = {
+        ...lastValidatedInputs,
+        rate: newRate,
+      };
 
-    const results = calculator.calculate(inputs);
-
-    // Update main results display
-    updateDisplayResults(results);
+      const results = recalculateMortgage(recalculateInputs, currentCalcMethod);
+      updateDisplayResultsFromRaw(results);
+    }
   });
 
   // Handle calculation method change
   calcMethodInputs.forEach((input) => {
     input.addEventListener("change", (e) => {
-      calculator.setCalcMethod(e.target.value);
+      currentCalcMethod = e.target.value;
       priceInput.placeholder = e.target.value === "payment"
         ? "Enter desired monthly payment"
         : "Enter purchase price";
+
+      // Reset validation state when mode changes
+      hasValidatedInputs = false;
+      lastValidatedInputs = null;
 
       // Update principal buydown slider max value
       updatePrincipalBuydownSliderMax();
@@ -200,19 +251,41 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Handle calculate button click
   calculateButton.addEventListener("click", () => {
-    const inputs = {
-      price: parseFloat(priceInput.value) || 0,
-      term: parseInt(termSelect.value) || 30,
-      rate: parseFloat(interestRateBuydownSlider.value) || 0,
-      tax: parseFloat(taxInput.value) || 0,
-      insurance: parseFloat(insuranceInput.value) || 0,
-      hoaFee: parseFloat(hoaFeeInput.value) || 0,
-      principalBuydown: parseFloat(principalBuydownSlider.value) || 0,
+    // Gather raw inputs as strings
+    const rawInput = {
+      price: priceInput.value,
+      term: termSelect.value,
+      rate: interestRateBuydownSlider.value, // Use slider value (effective rate)
+      tax: taxInput.value,
+      insurance: insuranceInput.value,
+      hoaFee: hoaFeeInput.value,
+      principalBuydown: principalBuydownSlider.value,
     };
 
-    const results = calculator.calculate(inputs);
+    const result = calculateMortgage(rawInput, currentCalcMethod);
 
-    updateDisplayResults(results);
+    if (!result.ok) {
+      showValidationErrors(result.errors);
+      return;
+    }
+
+    // Clear errors on successful validation
+    clearValidationErrors();
+
+    // Store validated inputs for slider recalculations
+    hasValidatedInputs = true;
+    lastValidatedInputs = {
+      price: result.data.purchasePrice, // Use calculated price for payment mode
+      term: parseInt(termSelect.value),
+      rate: parseFloat(interestRateBuydownSlider.value),
+      tax: parseFloat(taxInput.value),
+      insurance: parseFloat(insuranceInput.value),
+      hoaFee: parseFloat(hoaFeeInput.value),
+      principalBuydown: parseFloat(principalBuydownSlider.value),
+    };
+
+    // Format and display results
+    updateDisplayResultsFromRaw(result.data);
   });
 
   // Add event listener for the interest rate buydown slider
@@ -224,28 +297,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       /[$,]/g,
       "",
     );
-    const principal = parseFloat(purchasePriceText) || 0; // Use 0 if parsing fails or text is empty/invalid
+    const principal = parseFloat(purchasePriceText) || 0;
 
     if (principal > 0) {
-      let buydownCost = 0;
-      const currentPurchasePriceText = purchasePriceDisplay.textContent.replace(
-        /[$,]/g,
-        "",
+      // Calculate buydown cost via MortgageService (no validation needed)
+      const buydownCost = calculateInterestRateBuydown(
+        principal,
+        originalRate,
+        desiredRate,
+        term
       );
-      const currentPrincipal = parseFloat(currentPurchasePriceText) || 0;
-      if (currentPrincipal > 0) {
-        buydownCost = calculator.calculateInterestRateBuydown(
-          currentPrincipal,
-          originalRate,
-          desiredRate,
-          term,
-        );
-        interestRateBuydownCostDisplay.textContent = calculator.formatNumber(
-          buydownCost,
-        );
-      } else {
-        interestRateBuydownCostDisplay.textContent = "$0";
-      }
+      interestRateBuydownCostDisplay.textContent = formatCurrency(buydownCost);
 
       // Apply 1.5% buydown cap and update the displayed percentage
       const minAllowedRate = Math.max(0, originalRate - 1.5);
@@ -257,118 +319,81 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       interestRateBuydownValue.textContent = capReached
         ? `${desiredRate.toFixed(3)}% (1.5% cap reached)`
-        : `${desiredRate.toFixed(3)}%`; // Show precise rate
+        : `${desiredRate.toFixed(3)}%`;
 
-      // Recalculate mortgage details with the new bought-down rate
-      const tax = parseFloat(taxInput.value) || 0;
-      const insurance = parseFloat(insuranceInput.value) || 0;
-      const hoaFee = parseFloat(hoaFeeInput.value) || 0;
-      const principalBuydown = parseFloat(principalBuydownSlider.value) || 0;
+      // Recalculate mortgage using MortgageService with lastValidatedInputs and new rate
+      if (hasValidatedInputs && lastValidatedInputs) {
+        const recalculateInputs = {
+          ...lastValidatedInputs,
+          rate: desiredRate,
+        };
 
-      const recalculateInputs = {
-        term: term,
-        rate: desiredRate, // Use the (possibly capped) bought-down rate
-        tax: tax,
-        insurance: insurance,
-        hoaFee: hoaFee,
-        price: parseFloat(priceInput.value) || 0,
-        principalBuydown: principalBuydown,
-      };
+        const recalculatedResults = recalculateMortgage(recalculateInputs, currentCalcMethod);
 
-      // Perform the recalculation using the calculator instance
-      const recalculatedResults = calculator.calculate(recalculateInputs);
+        // Update the display based on the calculation method
+        if (currentCalcMethod === "price") {
+          updateDisplayResultsFromRaw(recalculatedResults);
+          purchasePriceDisplay.textContent = formatCurrency(recalculateInputs.price);
+        } else {
+          updateDisplayResultsFromRaw(recalculatedResults);
+          monthlyPaymentDisplay.textContent = formatCurrency(recalculateInputs.price);
+        }
 
-      // Update the display based on the calculation method
-      if (calculator.calcMethod === "price") {
-        // Price is fixed, update payment details
-        updateDisplayResults(recalculatedResults); // Preserve price inpu
-        // Purchase price remains the same
-        purchasePriceDisplay.textContent = calculator.formatNumber(
-          recalculateInputs.price,
-        );
-      } else { // calcMethod === 'payment'
-        // Payment is fixed, update price details
-        updateDisplayResults(recalculatedResults);
-        // Monthly payment remains the same
-        monthlyPaymentDisplay.textContent = calculator.formatNumber(
-          recalculateInputs.price,
-        );
+        // Update principal buydown slider max value after recalculation
+        updatePrincipalBuydownSliderMax();
       }
-
-      // Update principal buydown slider max value after recalculation
-      updatePrincipalBuydownSliderMax();
     }
   });
 
   // Add event listener for the principal buydown slider
   principalBuydownSlider.addEventListener("input", () => {
     const principalBuydown = parseFloat(principalBuydownSlider.value) || 0;
-    principalBuydownValue.textContent = calculator.formatNumber(
-      principalBuydown,
-    );
-    principalBuydownCostDisplay.textContent = calculator.formatNumber(
-      principalBuydown,
-    );
+    principalBuydownValue.textContent = formatCurrency(principalBuydown);
+    principalBuydownCostDisplay.textContent = formatCurrency(principalBuydown);
 
-    // Get other current inputs
-    const term = parseInt(termSelect.value);
-    const desiredRate = parseFloat(interestRateBuydownSlider.value);
-    const tax = parseFloat(taxInput.value) || 0;
-    const insurance = parseFloat(insuranceInput.value) || 0;
-    const hoaFee = parseFloat(hoaFeeInput.value) || 0;
+    // Use lastValidatedInputs with new principalBuydown
+    if (hasValidatedInputs && lastValidatedInputs) {
+      const desiredRate = parseFloat(interestRateBuydownSlider.value);
+      const term = parseInt(termSelect.value);
 
-    const recalculateInputs = {
-      term: term,
-      rate: desiredRate,
-      tax: tax,
-      insurance: insurance,
-      hoaFee: hoaFee,
-      price: parseFloat(priceInput.value) || 0,
-      principalBuydown: principalBuydown,
-    };
+      const recalculateInputs = {
+        ...lastValidatedInputs,
+        principalBuydown: principalBuydown,
+      };
 
-    // Perform the recalculation using the calculator instance
-    const recalculatedResults = calculator.calculate(recalculateInputs);
+      // Recalculate using MortgageService (no validation)
+      const recalculatedResults = recalculateMortgage(recalculateInputs, currentCalcMethod);
 
-    // Update the display based on the calculation method
-    if (calculator.calcMethod === "price") {
-      // Price is fixed, update payment details
-      updateDisplayResults(recalculatedResults);
-      // Purchase price remains the same input, but display formatted version
-      purchasePriceDisplay.textContent = calculator.formatNumber(
-        recalculateInputs.price,
+      // Update the display based on the calculation method
+      if (currentCalcMethod === "price") {
+        updateDisplayResultsFromRaw(recalculatedResults);
+        purchasePriceDisplay.textContent = formatCurrency(recalculateInputs.price);
+      } else {
+        updateDisplayResultsFromRaw(recalculatedResults);
+        monthlyPaymentDisplay.textContent = formatCurrency(recalculateInputs.price);
+      }
+
+      // Update principal buydown slider max value after recalculation
+      updatePrincipalBuydownSliderMax();
+
+      // Also re-calculate and update the interest rate buydown cost via MortgageService
+      const originalInterestRate = parseFloat(rateInput.value);
+      const currentPurchasePriceText = purchasePriceDisplay.textContent.replace(
+        /[$,]/g,
+        "",
       );
-    } else { // calcMethod === 'payment'
-      // Payment is fixed, update price details
-      updateDisplayResults(recalculatedResults);
-      // Monthly payment remains the same input, but display formatted version
-      monthlyPaymentDisplay.textContent = calculator.formatNumber(
-        recalculateInputs.price,
-      );
-    }
-
-    // Update principal buydown slider max value after recalculation (important for 'payment' mode)
-    updatePrincipalBuydownSliderMax();
-
-    // Also re-calculate and update the interest rate buydown cost, as it depends on the potentially changed principal
-    const originalInterestRate = parseFloat(rateInput.value);
-    const currentPurchasePriceText = purchasePriceDisplay.textContent.replace(
-      /[$,]/g,
-      "",
-    );
-    const currentPrincipal = parseFloat(currentPurchasePriceText) || 0;
-    if (currentPrincipal > 0) {
-      const interestBuydownCost = calculator.calculateInterestRateBuydown(
-        currentPrincipal,
-        originalInterestRate,
-        desiredRate,
-        term,
-      );
-      interestRateBuydownCostDisplay.textContent = calculator.formatNumber(
-        interestBuydownCost,
-      );
-    } else {
-      interestRateBuydownCostDisplay.textContent = "$0";
+      const currentPrincipal = parseFloat(currentPurchasePriceText) || 0;
+      if (currentPrincipal > 0) {
+        const interestBuydownCost = calculateInterestRateBuydown(
+          currentPrincipal,
+          originalInterestRate,
+          desiredRate,
+          term
+        );
+        interestRateBuydownCostDisplay.textContent = formatCurrency(interestBuydownCost);
+      } else {
+        interestRateBuydownCostDisplay.textContent = "$0";
+      }
     }
   });
 

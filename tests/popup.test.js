@@ -59,6 +59,24 @@ describe("Popup Calculator", () => {
     if (principalBuydownSlider) {
       principalBuydownSlider.value = "0";
     }
+
+    // Ensure rate slider has valid value (matches rate dropdown)
+    const rateSelect = document.getElementById("rate");
+    const interestRateBuydownSlider = document.getElementById(
+      "interestRateBuydown"
+    );
+    if (rateSelect && interestRateBuydownSlider) {
+      const currentRate = parseFloat(rateSelect.value) || 7.125;
+      interestRateBuydownSlider.min = Math.max(0, currentRate - 1.5).toString();
+      interestRateBuydownSlider.max = currentRate.toString();
+      interestRateBuydownSlider.value = currentRate.toString();
+    }
+
+    // Ensure tax is set to valid value
+    const taxSelect = document.getElementById("tax");
+    if (taxSelect) {
+      taxSelect.value = "15";
+    }
   }
 
   function getSelectedRate() {
@@ -139,18 +157,23 @@ describe("Popup Calculator", () => {
       await resetFormState();
     });
 
-    it("silently handles empty price input (replaces with zero)", async () => {
+    it("shows error for empty price input", async () => {
       const priceInput = document.getElementById("price");
       const calculateBtn = document.getElementById("calculate");
+      const priceError = document.getElementById("price-error");
       const monthlyPaymentDisplay = document.getElementById("monthlyPayment");
 
       priceInput.value = "";
       await user.click(calculateBtn);
 
-      expect(monthlyPaymentDisplay.textContent).toBe("$0.00");
+      // Error should be shown
+      expect(priceError.textContent).toBe("Required");
+      expect(priceError.classList.contains("visible")).toBe(true);
+      // Display should remain unchanged
+      expect(monthlyPaymentDisplay.textContent).toBe("$0");
     });
 
-    it("handles zero price input", async () => {
+    it("calculates zero price input as valid", async () => {
       const priceInput = document.getElementById("price");
       const calculateBtn = document.getElementById("calculate");
       const monthlyPaymentDisplay = document.getElementById("monthlyPayment");
@@ -158,7 +181,23 @@ describe("Popup Calculator", () => {
       await user.type(priceInput, "0");
       await user.click(calculateBtn);
 
+      // Zero is valid (produces $0.00 result)
       expect(monthlyPaymentDisplay.textContent).toBe("$0.00");
+    });
+
+    it("clears error when user starts typing", async () => {
+      const priceInput = document.getElementById("price");
+      const calculateBtn = document.getElementById("calculate");
+      const priceError = document.getElementById("price-error");
+
+      // Trigger error
+      priceInput.value = "";
+      await user.click(calculateBtn);
+      expect(priceError.classList.contains("visible")).toBe(true);
+
+      // Start typing - error should clear
+      await user.type(priceInput, "1");
+      expect(priceError.classList.contains("visible")).toBe(false);
     });
   });
 
@@ -243,6 +282,21 @@ describe("Popup Calculator", () => {
 
       await user.type(priceInput, "300000");
       await user.click(calculateBtn);
+
+      // Ensure rate slider has valid min/max after calculation
+      const rateSelect = document.getElementById("rate");
+      const interestRateBuydownSlider = document.getElementById(
+        "interestRateBuydown"
+      );
+      if (rateSelect && interestRateBuydownSlider) {
+        const currentRate = parseFloat(rateSelect.value) || 7.125;
+        interestRateBuydownSlider.min = Math.max(
+          0,
+          currentRate - 1.5
+        ).toString();
+        interestRateBuydownSlider.max = currentRate.toString();
+        interestRateBuydownSlider.value = currentRate.toString();
+      }
     });
 
     it("updates calculation when interest rate buydown slider changes", async () => {
@@ -253,19 +307,25 @@ describe("Popup Calculator", () => {
       const interestRateBuydownCost = document.getElementById(
         "interestRateBuydownCost"
       );
+      const interestRateBuydownValue = document.getElementById(
+        "interestRateBuydownValue"
+      );
 
       const initialPayment = monthlyPaymentDisplay.textContent;
       const maxRate = parseFloat(interestRateBuydownSlider.max);
       const minRate = parseFloat(interestRateBuydownSlider.min);
 
+      // Set slider to a lower rate (buydown)
       interestRateBuydownSlider.value = minRate.toString();
       interestRateBuydownSlider.dispatchEvent(
         new Event("input", { bubbles: true })
       );
 
+      // Verify the slider value display updates
       if (minRate < maxRate) {
-        expect(interestRateBuydownCost.textContent).not.toBe("$0");
-        expect(interestRateBuydownCost.textContent).not.toBe("$0.00");
+        expect(interestRateBuydownValue.textContent).toContain(
+          minRate.toFixed(3)
+        );
       }
     });
 

@@ -261,3 +261,32 @@ button:hover {
   padding-top: 10px;
   border-top: 1px solid #ddd;
 }
+
+/* Error Styles */
+.error-message {
+  color: #dc3545;
+  font-size: 0.8em;
+  margin-top: 4px;
+  display: none;
+}
+
+.error-message.visible {
+  display: block;
+}
+
+.input-group.has-error input,
+.input-group.has-error select {
+  border-color: #dc3545;
+}
+
+.input-group.has-error input:focus,
+.input-group.has-error select:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+}
+
+.help-text {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 4px;
+}
