@@ -106,11 +106,14 @@ Extract calculator logic into `packages/naca-mortgage-calculator` and make both 
 ### Success Criteria
 
 #### Automated Verification
-- [ ] Extension tests continue to run: `bun test` (from repo root)
+- [x] Extension tests continue to run: `bun test` (from repo root)
 
 #### Manual Verification
-- [ ] Extension calculations match previous outputs.
-- [ ] Website calculator still works with shared logic.
+- [x] Extension calculations match previous outputs.
+- [x] Website calculator still works with shared logic.
+
+#### Commit
+- [x] Run `jj commit -m "<one-sentence summary>"` after phase completion.
 
 **Implementation Note**: Pause after manual validation before adding TypeScript/build steps.
 

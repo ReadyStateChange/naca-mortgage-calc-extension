@@ -1,10 +1,3 @@
-/**
- * MortgageCalculator - Shared calculator logic
- * Source: @naca-app/calculator (packages/naca-mortgage-calculator)
- * 
- * This file is a browser-compatible copy of the shared calculator package.
- * Keep in sync with packages/naca-mortgage-calculator/src/calculator.js
- */
 class MortgageCalculator {
   constructor() {
     this.calcMethod = "payment";
@@ -325,3 +318,5 @@ class MortgageCalculator {
     }
   }
 }
+
+export { MortgageCalculator };

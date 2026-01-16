@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "bun:test";
-import { MortgageCalculator } from "@naca-app/calculator";
+import { MortgageCalculator } from "../src/calculator.js";
 
 describe("MortgageCalculator", () => {
   let calculator;

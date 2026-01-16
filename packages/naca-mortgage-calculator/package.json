@@ -1,0 +1,13 @@
+{
+  "name": "@naca-app/calculator",
+  "version": "1.0.0",
+  "description": "NACA Mortgage Calculator shared logic",
+  "type": "module",
+  "main": "src/calculator.js",
+  "exports": {
+    ".": "./src/calculator.js"
+  },
+  "scripts": {
+    "test": "bun test"
+  }
+}
