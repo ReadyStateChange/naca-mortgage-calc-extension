@@ -1,6 +1,5 @@
 ---
 description: Create detailed implementation plans through interactive research and iteration
-model: opus
 ---
 
 # Implementation Plan
@@ -55,7 +54,7 @@ Then wait for the user's input.
 
    These agents will:
    - Find relevant source files, configs, and tests
-   - Identify the specific directories to focus on 
+   - Identify the specific directories to focus on
    - Trace data flow and key functions
    - Return detailed explanations with file:line references
 
@@ -313,7 +312,7 @@ After structure approval:
    - Read all context files COMPLETELY before planning
    - Research actual code patterns using parallel sub-tasks
    - Include specific file paths and line numbers
-   - Write measurable success criteria with clear automated vs manual 
+   - Write measurable success criteria with clear automated vs manual
 
 4. **Be Practical**:
    - Focus on incremental, testable changes

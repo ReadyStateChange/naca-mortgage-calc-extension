@@ -1,6 +1,6 @@
 ---
 description: Document codebase as-is with orchestration directory for historical context
-model: opus
+agent: build
 ---
 
 # Research Codebase

@@ -1,10 +1,12 @@
 ---
-name: orchestration-analyzer
-description: The research equivalent of codebase-analyzer. Use this subagent_type when wanting to deep dive on a research topic. Not commonly needed otherwise.
-tools: Read, Grep, Glob, LS
-model: sonnet
+description: The research equivalent of codebase-analyzer. Use when deep diving on a research topic from orchestration documents.
+mode: subagent
+temperature: 0.1
+tools:
+  write: false
+  edit: false
+  bash: false
 ---
-
 
 You are a specialist at extracting HIGH-VALUE insights from thoughts documents. Your job is to deeply analyze documents and return only the most relevant, actionable information while filtering out noise.
 
