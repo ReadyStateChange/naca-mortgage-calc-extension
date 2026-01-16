@@ -146,6 +146,9 @@ Introduce a TypeScript-based build for the extension that outputs a browser-read
 #### Manual Verification
 - [ ] Unpacked extension loads from `packages/extension/dist`.
 
+#### Commit
+- [ ] Run `jj commit -m "<one-sentence summary>"` after phase completion.
+
 ---
 
 ## Phase 4: Update Extension Zip Packaging Script
@@ -170,6 +173,9 @@ Modify `scripts/zip_for_chrome.sh` to run the extension build command and zip th
 
 #### Manual Verification
 - [ ] `naca_extension.zip` installs and runs in Chrome.
+
+#### Commit
+- [ ] Run `jj commit -m "<one-sentence summary>"` after phase completion.
 
 ---
 
@@ -196,6 +202,9 @@ Ensure Railway continues to deploy the website/API from the new package path.
 #### Manual Verification
 - [ ] Railway deploy works with `packages/website` (confirm via dashboard or logs).
 
+#### Commit
+- [ ] Run `jj commit -m "<one-sentence summary>"` after phase completion.
+
 ---
 
 ## Phase 6: GitHub Actions for Chrome Web Store Submission
@@ -220,6 +229,9 @@ Create a GitHub Actions workflow that builds, zips, and uploads the extension us
 
 #### Manual Verification
 - [ ] Chrome Web Store submission succeeds using stored secrets.
+
+#### Commit
+- [ ] Run `jj commit -m "<one-sentence summary>"` after phase completion.
 
 ---
 

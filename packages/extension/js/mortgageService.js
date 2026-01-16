@@ -5,8 +5,8 @@
  * MortgageCalculator is encapsulated here - not exposed globally
  */
 
-import { MortgageCalculator } from "./calculator.js";
-import { validateCalculatorInput } from "./inputValidator.js";
+import { MortgageCalculator } from "@naca-app/calculator";
+import { validateCalculatorInput } from "./inputValidator";
 
 /**
  * Validate inputs and calculate mortgage

@@ -107,20 +107,9 @@
 - Extension UI logic is in `popup/popup.js`.
 - API uses same-origin requests for the website.
 
-## Copilot Instructions (From `.github/copilot-instructions.md`)
-- Follow instructions carefully and avoid extra work.
-- Ask questions when requirements are unclear.
-- Identify constraints and keep work scoped to requests.
-- Plan thoughtfully before implementation.
-- Maintain code quality, performance, and security.
-- Use strict type checking and follow lint rules.
-- Report progress and confirm at decision points.
-- Do not edit any package management files without consent.
-- Validate issues methodically and document solutions.
 
 ## Agent Behavior Expectations
 - Respect existing architecture and avoid unrelated changes.
-- Do not add dependencies or modify package files without approval.
 - Keep edits focused and consistent with surrounding code.
 - Avoid introducing new tooling unless explicitly requested.
 - Prefer minimal diffs and incremental changes.
