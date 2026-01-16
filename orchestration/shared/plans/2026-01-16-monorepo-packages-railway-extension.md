@@ -74,11 +74,11 @@ Create the `packages/` structure and configure Bun workspaces, while keeping the
 ### Success Criteria
 
 #### Automated Verification
-- [ ] Workspace install succeeds: `bun install`
+- [x] Workspace install succeeds: `bun install`
 
 #### Manual Verification
-- [ ] Extension assets load from `packages/extension` in Chrome.
-- [ ] Website still runs locally via `cd packages/website && bun run dev`.
+- [x] Extension assets load from `packages/extension` in Chrome.
+- [x] Website still runs locally via `cd packages/website && bun run dev`.
 
 **Implementation Note**: After Phase 1 completes and automated verification passes, confirm the extension can still be loaded as unpacked using the new path before moving on.
 

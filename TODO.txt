@@ -12,3 +12,4 @@
 - [ ] Document Neon/Railway ops runbook in project wiki
 - [ ] Add radio button to select between priority member and non-priority member
 - [ ] Make MSA Lookup form submit on enter/return
+- [ ] There seems to be a bug where sliding the interest rate buydown calculator resets the payment type from monthly payment to purchase price

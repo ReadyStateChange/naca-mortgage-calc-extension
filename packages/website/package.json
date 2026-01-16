@@ -1,5 +1,5 @@
 {
-  "name": "naca-calculator-api",
+  "name": "@naca-app/website",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
