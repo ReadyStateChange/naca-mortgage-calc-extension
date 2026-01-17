@@ -147,7 +147,7 @@ Introduce a TypeScript-based build for the extension that outputs a browser-read
 - [x] Unpacked extension loads from `packages/extension/dist`.
 
 #### Commit
-- [ ] Run `jj commit -m "<one-sentence summary>"` after phase completion.
+- [x] Run `jj commit -m "<one-sentence summary>"` after phase completion.
 
 ---
 
@@ -169,10 +169,10 @@ Modify `scripts/zip_for_chrome.sh` to run the extension build command and zip th
 ### Success Criteria
 
 #### Automated Verification
-- [ ] Zip script succeeds: `./scripts/zip_for_chrome.sh`
+- [x] Zip script succeeds: `./scripts/zip_for_chrome.sh`
 
 #### Manual Verification
-- [ ] `naca_extension.zip` installs and runs in Chrome.
+- [x] `naca_extension.zip` installs and runs in Chrome.
 
 #### Commit
 - [ ] Run `jj commit -m "<one-sentence summary>"` after phase completion.

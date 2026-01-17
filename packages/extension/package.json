@@ -1,6 +1,6 @@
 {
   "name": "@naca-app/extension",
-  "version": "1.0.0",
+  "version": "1.4",
   "description": "NACA Mortgage Calculator Chrome Extension",
   "type": "module",
   "main": "dist/popup/popup.js",
