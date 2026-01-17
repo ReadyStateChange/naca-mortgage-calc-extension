@@ -5,7 +5,7 @@ import {
   validatePropertyTax,
   validateNonNegative,
   validateCalculatorInput,
-} from "../js/inputValidator.js";
+} from "../src/js/inputValidator.ts";
 
 describe("validatePrice", () => {
   it("accepts valid positive numbers", () => {

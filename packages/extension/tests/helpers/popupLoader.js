@@ -6,7 +6,7 @@ import path from "path";
  * @returns {void}
  */
 export function loadPopupHTML() {
-  const htmlPath = path.resolve(import.meta.dir, "../../popup/popup.html");
+  const htmlPath = path.resolve(import.meta.dir, "../../src/popup/popup.html");
   const html = fs.readFileSync(htmlPath, "utf8");
 
   // Extract just the body content (between <body> tags)
@@ -22,7 +22,7 @@ export function loadPopupHTML() {
  * @returns {void}
  */
 export function loadPopupCSS() {
-  const cssPath = path.resolve(import.meta.dir, "../../popup/popup.css");
+  const cssPath = path.resolve(import.meta.dir, "../../src/popup/popup.css");
   const css = fs.readFileSync(cssPath, "utf8");
 
   const style = document.createElement("style");
@@ -104,12 +104,12 @@ export function resetTestEnvironment() {
 let popupModuleLoaded = false;
 
 /**
- * Initialize popup.js by dynamically importing and triggering DOMContentLoaded
- * This allows tests to import popup.js as an ES module
+ * Initialize popup.ts by dynamically importing and triggering DOMContentLoaded
+ * This allows tests to import popup.ts as an ES module
  * @returns {Promise<void>}
  */
 export async function initializePopup() {
-  await import("../../popup/popup.js");
+  await import("../../src/popup/popup.ts");
 
   const event = new Event("DOMContentLoaded", {
     bubbles: true,

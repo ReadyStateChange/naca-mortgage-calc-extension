@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { calculateMortgage, recalculateMortgage, formatCurrency, calculateInterestRateBuydown } from "../js/mortgageService.js";
+import { calculateMortgage, recalculateMortgage, formatCurrency, calculateInterestRateBuydown } from "../src/js/mortgageService.ts";
 
 describe("calculateMortgage", () => {
   it("returns validation errors for invalid input", () => {

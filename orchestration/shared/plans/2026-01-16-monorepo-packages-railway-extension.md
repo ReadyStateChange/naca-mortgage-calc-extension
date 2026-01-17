@@ -141,10 +141,10 @@ Introduce a TypeScript-based build for the extension that outputs a browser-read
 ### Success Criteria
 
 #### Automated Verification
-- [ ] Build succeeds: `bun run build` (in `packages/extension`)
+- [x] Build succeeds: `bun run build` (in `packages/extension`)
 
 #### Manual Verification
-- [ ] Unpacked extension loads from `packages/extension/dist`.
+- [x] Unpacked extension loads from `packages/extension/dist`.
 
 #### Commit
 - [ ] Run `jj commit -m "<one-sentence summary>"` after phase completion.
