@@ -26,11 +26,11 @@ This project uses a Bun workspace monorepo. The website/API lives at `packages/w
 ```
 naca-app/
 ├── package.json              # Workspace root
+├── railway.toml              # Railway config-as-code (at repo root)
 ├── packages/
 │   ├── extension/            # Chrome extension
 │   ├── naca-mortgage-calculator/  # Shared calculator logic
 │   └── website/              # API + Website (this package)
-│       ├── railway.toml      # Railway config-as-code
 │       ├── package.json
 │       ├── src/              # API source code
 │       └── public/           # Static website assets
@@ -38,21 +38,30 @@ naca-app/
 
 ### Railway Configuration
 
-Railway is configured via `railway.toml` in this package directory:
+Railway is configured via `railway.toml` at the **repository root** (not in packages/website).
+
+This is required because the website depends on `@naca-app/calculator` workspace package, so Railway needs access to the full monorepo to resolve workspace dependencies.
 
 ```toml
 [build]
 builder = "nixpacks"
-buildCommand = "bun run build"
+buildCommand = "bun run --cwd packages/website build"
+
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["bun"]
+
+[build.nixpacksPlan.phases.install]
+dependsOn = ["setup"]
+cmds = ["bun install"]
 
 [deploy]
-startCommand = "bun run start"
+startCommand = "bun run --cwd packages/website start"
 healthcheckPath = "/api/rates"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
 ```
 
-**Important**: In the Railway dashboard, set the **Root Directory** to `packages/website` so Railway uses this package as the service root.
+**Important**: Do NOT set a Root Directory in Railway dashboard. Deploy from the repo root so workspace dependencies are available.
 
 ### Deployment Process
 
@@ -67,7 +76,8 @@ restartPolicyType = "ON_FAILURE"
 
 3. **Railway Auto-Deploy**
    - Railway detects push to main branch
-   - Builds and deploys automatically from `packages/website/`
+   - Builds and deploys automatically from repo root
+   - Uses `--cwd packages/website` to target the website package
    - Website accessible at: `https://<app>.up.railway.app/`
    - API accessible at: `https://<app>.up.railway.app/api/*`
 
