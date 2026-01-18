@@ -2,8 +2,8 @@
 builder = "nixpacks"
 buildCommand = "bun run build"
 
-[build.nixpacksPlan]
-providers = ["bun"]
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["bun"]
 
 [build.nixpacksPlan.phases.install]
 dependsOn = ["setup"]
