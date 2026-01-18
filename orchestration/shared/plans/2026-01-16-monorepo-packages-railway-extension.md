@@ -200,10 +200,11 @@ Ensure Railway continues to deploy the website/API from the new package path.
 - [x] Website still runs locally: `cd packages/website && bun run dev`
 
 #### Manual Verification
-- [ ] Railway deploy works with `packages/website` (confirm via dashboard or logs).
+- [x] Railway deploy works with `packages/website` (confirm via dashboard or logs).
 
 #### Commit
-- [ ] Run `jj commit -m "<one-sentence summary>"` after phase completion.
+- [x] Run `jj commit -m "<one-sentence summary>"` after phase completion.
+- [x] Move bookmark monorepo-packages-railway-extension to latest commit
 
 ---
 
@@ -225,13 +226,14 @@ Create a GitHub Actions workflow that builds, zips, and uploads the extension us
 ### Success Criteria
 
 #### Automated Verification
-- [ ] Workflow builds and produces `naca_extension.zip` on CI.
+- [x] Workflow builds and produces `naca_extension.zip` on CI.
 
 #### Manual Verification
 - [ ] Chrome Web Store submission succeeds using stored secrets.
 
 #### Commit
 - [ ] Run `jj commit -m "<one-sentence summary>"` after phase completion.
+- [ ] Move jj bookmark `monorepo-packages-railway-extension` to latest commit
 
 ---
 
