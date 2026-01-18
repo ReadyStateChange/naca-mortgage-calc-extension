@@ -1,6 +1,5 @@
 ---
 description: Document codebase as-is with orchestration directory for historical context
-agent: build
 ---
 
 # Research Codebase

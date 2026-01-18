@@ -175,7 +175,7 @@ Modify `scripts/zip_for_chrome.sh` to run the extension build command and zip th
 - [x] `naca_extension.zip` installs and runs in Chrome.
 
 #### Commit
-- [ ] Run `jj commit -m "<one-sentence summary>"` after phase completion.
+- [x] Run `jj commit -m "<one-sentence summary>"` after phase completion.
 
 ---
 
@@ -197,7 +197,7 @@ Ensure Railway continues to deploy the website/API from the new package path.
 ### Success Criteria
 
 #### Automated Verification
-- [ ] Website still runs locally: `cd packages/website && bun run dev`
+- [x] Website still runs locally: `cd packages/website && bun run dev`
 
 #### Manual Verification
 - [ ] Railway deploy works with `packages/website` (confirm via dashboard or logs).
