@@ -1,8 +1,8 @@
 {
   "name": "naca-app",
   "version": "1.0.0",
-  "description": "This browser extension mimics the mortgage calculator available on the [NACA website](https://www.naca.com/mortgage-calculator/). It is designed to assist NACA buyers while browsing real estate listing websites like Zillow, Redfin, Homes.com, etc.",
-  "main": "popup/popup.js",
+  "description": "Monorepo containing NACA Mortgage Calculator extension and website.",
+  "workspaces": ["packages/*"],
   "scripts": {
     "test": "bun test"
   },

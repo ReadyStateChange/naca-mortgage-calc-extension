@@ -1,0 +1,23 @@
+{
+  "name": "@naca-app/extension",
+  "version": "1.4",
+  "description": "NACA Mortgage Calculator Chrome Extension",
+  "type": "module",
+  "main": "dist/popup/popup.js",
+  "scripts": {
+    "build": "bun run build:ts && bun run build:assets",
+    "build:ts": "bun build src/popup/popup.ts --outdir dist/popup --target browser --format esm --minify",
+    "build:assets": "cp src/popup/popup.html dist/popup/ && cp src/popup/popup.css dist/popup/ && cp -r icons dist/ && cp manifest.json dist/",
+    "clean": "rm -rf dist",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@naca-app/calculator": "workspace:*"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20.0.11",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/user-event": "^14.6.1",
+    "typescript": "^5.0.0"
+  }
+}

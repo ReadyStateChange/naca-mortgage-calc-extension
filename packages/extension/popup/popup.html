@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NACAMortgage Calculator</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="tab-container">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="calculator">Calculator</button>
+        <button class="tab-btn" data-tab="msa-lookup">Lookup Address</button>
+      </div>
+
+      <div class="tab-content active" id="calculator">
+        <div class="calculator">
+          <h2>NACA Mortgage Calculator</h2>
+
+          <div class="calc-mode">
+            <label>
+              <input type="radio" name="calcMethod" value="payment" checked />
+              Enter your desired monthly payment(PITI)
+            </label>
+            <label>
+              <input type="radio" name="calcMethod" value="price" /> Enter
+              Desired Purchase Price
+            </label>
+          </div>
+
+          <div class="payment-term">
+            <div class="input-group">
+              <label for="price">Purchase Price / Payment</label>
+              <input type="text" id="price" placeholder="Enter amount" />
+              <span class="error-message" id="price-error"></span>
+            </div>
+
+            <div class="input-group">
+              <label for="term">Loan Term</label>
+              <select id="term">
+                <option value="30">30 Years</option>
+                <option value="20">20 Years</option>
+                <option value="15">15 Years</option>
+              </select>
+              <span class="error-message" id="term-error"></span>
+            </div>
+          </div>
+
+          <div class="rate-tax-group">
+            <div class="input-group">
+              <label for="rate">Interest Rate (%)</label>
+              <select id="rate">
+                <!-- Interest rates will be populated dynamically based on term -->
+              </select>
+              <span class="error-message" id="rate-error"></span>
+            </div>
+
+            <div class="input-group">
+              <label for="tax" title="The tax rate is per $1000 of mortgage">
+                Property Tax <span class="tooltip-icon">?</span>
+              </label>
+              <select id="tax" title="The tax rate is per $1000 of mortgage">
+                <option value="5">5%</option>
+                <option value="5.5">5.5%</option>
+                <option value="6">6%</option>
+                <option value="6.5">6.5%</option>
+                <option value="7">7%</option>
+                <option value="7.5">7.5%</option>
+                <option value="8">8%</option>
+                <option value="8.5">8.5%</option>
+                <option value="9">9%</option>
+                <option value="9.5">9.5%</option>
+                <option value="10">10%</option>
+                <option value="10.5">10.5%</option>
+                <option value="11">11%</option>
+                <option value="11.5">11.5%</option>
+                <option value="12">12%</option>
+                <option value="12.5">12.5%</option>
+                <option value="13">13%</option>
+                <option value="13.5">13.5%</option>
+                <option value="14">14%</option>
+                <option value="14.5">14.5%</option>
+                <option value="15">15%</option>
+                <option value="15.5">15.5%</option>
+                <option value="16">16%</option>
+                <option value="16.5">16.5%</option>
+                <option value="17">17%</option>
+                <option value="17.5">17.5%</option>
+                <option value="18">18%</option>
+                <option value="18.5">18.5%</option>
+                <option value="19">19%</option>
+                <option value="19.5">19.5%</option>
+                <option value="20">20%</option>
+                <option value="20.5">20.5%</option>
+                <option value="21">21%</option>
+                <option value="21.5">21.5%</option>
+                <option value="22">22%</option>
+                <option value="22.5">22.5%</option>
+                <option value="23">23%</option>
+                <option value="23.5">23.5%</option>
+                <option value="24">24%</option>
+                <option value="24.5">24.5%</option>
+                <option value="25">25%</option>
+                <option value="25.5">25.5%</option>
+                <option value="26">26%</option>
+                <option value="26.5">26.5%</option>
+                <option value="27">27%</option>
+                <option value="27.5">27.5%</option>
+                <option value="28">28%</option>
+                <option value="28.5">28.5%</option>
+                <option value="29">29%</option>
+                <option value="29.5">29.5%</option>
+                <option value="30">30%</option>
+                <option value="30.5">30.5%</option>
+              </select>
+              <span class="error-message" id="tax-error"></span>
+            </div>
+          </div>
+
+          <div class="additional-costs-group">
+            <div class="input-group">
+              <label for="insurance">Insurance (Monthly)</label>
+              <input
+                type="number"
+                id="insurance"
+                placeholder="Enter insurance amount"
+              />
+              <span class="error-message" id="insurance-error"></span>
+            </div>
+
+            <div class="input-group">
+              <label for="hoaFee">HOA/Condo Fee (Monthly)</label>
+              <input
+                type="number"
+                id="hoaFee"
+                placeholder="Enter HOA/Condo fee"
+              />
+              <span class="error-message" id="hoaFee-error"></span>
+            </div>
+
+            <div class="input-group">
+              <label
+                for="downPayment"
+                title="NACA doesn't require a down payment!"
+                >Down Payment <span class="tooltip-icon">?</span></label
+              >
+              <input
+                type="text"
+                id="downPayment"
+                placeholder="NACA doesn't require a down payment!"
+                value="0"
+                disabled
+              />
+            </div>
+          </div>
+
+          <!-- Buydown Section -->
+          <div class="buydown-section">
+            <h3>Buydown Options</h3>
+
+            <div class="input-group">
+              <label
+                for="interestRateBuydown"
+                title="Reduce your interest rate"
+              >
+                Interest Rate Buydown <span class="tooltip-icon">?</span>
+              </label>
+              <div class="slider-container">
+                <input
+                  type="range"
+                  id="interestRateBuydown"
+                  min="0"
+                  max="0"
+                  step="0.125"
+                  value="0"
+                />
+                <span id="interestRateBuydownValue">0%</span>
+              </div>
+              <div class="help-text" aria-live="polite">
+                Max buydown: 1.5% below the selected interest rate.
+              </div>
+            </div>
+
+            <div class="buydown-result">
+              <div class="result-item">
+                <span>Interest Rate Buydown Cost:</span>
+                <span id="interestRateBuydownCost">$0</span>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="principalBuydown" title="Reduce your principal">
+                Principal Buydown <span class="tooltip-icon">?</span>
+              </label>
+              <div class="slider-container">
+                <input
+                  type="range"
+                  id="principalBuydown"
+                  min="0"
+                  step="1000"
+                  value="0"
+                />
+                <span id="principalBuydownValue">$0</span>
+              </div>
+            </div>
+
+            <div class="buydown-result">
+              <div class="result-item">
+                <span>Principal Buydown Cost:</span>
+                <span id="principalBuydownCost">$0</span>
+              </div>
+            </div>
+          </div>
+
+          <button id="calculate">Calculate</button>
+          <div id="button-errors" class="button-error-messages"></div>
+
+          <div class="results">
+            <div class="result-item">
+              <span>Monthly Payment:</span>
+              <span id="monthlyPayment">$0</span>
+            </div>
+            <div class="result-item">
+              <span>Purchase Price:</span>
+              <span id="purchasePrice">$0</span>
+            </div>
+            <div class="result-item">
+              <span>Principal & Interest:</span>
+              <span id="principalInterest">$0</span>
+            </div>
+            <div class="result-item">
+              <span>Taxes:</span>
+              <span id="taxes">$0</span>
+            </div>
+            <div class="result-item">
+              <span>Insurance:</span>
+              <span id="insuranceAmount">$0</span>
+            </div>
+            <div class="result-item">
+              <span>HOA/Condo Fee:</span>
+              <span id="hoaFeeDisplay">$0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="msa-lookup">
+        <div class="msa-lookup-container">
+          <h2>MSA Lookup</h2>
+          <div class="input-group">
+            <label for="address">Enter Address</label>
+            <input type="text" id="address" placeholder="Enter full address" />
+          </div>
+          <button id="lookup-btn">Lookup MSA</button>
+
+          <div class="msa-results">
+            <div id="msaStatus" class="status-message"></div>
+            <div class="result-item">
+              <span>MSA Median Family Income:</span>
+              <span id="msaResultMsaIncome">-</span>
+            </div>
+            <div class="result-item">
+              <span>Tract Median Family Income:</span>
+              <span id="msaResultTractIncome">-</span>
+            </div>
+            <div class="result-item">
+              <span>Tract Percent of MSA:</span>
+              <span id="msaResultTractPercent">-</span>
+            </div>
+            <div class="result-item">
+              <span>Year:</span>
+              <span id="msaResultYear">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

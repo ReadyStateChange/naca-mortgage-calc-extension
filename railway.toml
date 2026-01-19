@@ -1,0 +1,20 @@
+# Railway config for monorepo deployment
+# Important: Do NOT set Root Directory in Railway dashboard - deploy from repo root
+# so that workspace dependencies (packages/naca-mortgage-calculator) are available
+
+[build]
+builder = "nixpacks"
+buildCommand = "bun run --cwd packages/website build"
+
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["bun"]
+
+[build.nixpacksPlan.phases.install]
+dependsOn = ["setup"]
+cmds = ["bun install"]
+
+[deploy]
+startCommand = "bun run --cwd packages/website start"
+healthcheckPath = "/api/rates"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"

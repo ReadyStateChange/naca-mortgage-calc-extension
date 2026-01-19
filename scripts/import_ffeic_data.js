@@ -10,11 +10,11 @@ const TABLE_NAME = "ffeic_msa_tract_income_2024";
 
 // PostgreSQL Connection Details (replace with your actual configuration)
 const PG_CONFIG = {
-  user: "emmanuelgenard", // e.g., 'postgres'
-  host: "localhost",
-  database: "naca_extension", // The database where the table should be created
-  password: "",
-  port: 5432, // Default PostgreSQL port
+  user: process.env.PG_USER,
+  host: process.env.PG_HOST,
+  database: process.env.PG_DATABASE,
+  password: process.env.PG_PASSWORD,
+  port: parseInt(process.env.PG_PORT, 10),
 };
 
 // Define the columns you want to extract from CSV (0-based index)
@@ -61,11 +61,9 @@ async function setupDatabase(pool, tableName, dbColumns) {
       `${dbColumns[5]} INTEGER`, // For MSA income (integer)
       `${dbColumns[6]} INTEGER`, // For the calculated estimate (integer)
     ];
-    const createTableSql = `CREATE TABLE IF NOT EXISTS ${tableName} (${
-      columnsWithTypes.join(
-        ", ",
-      )
-    })`;
+    const createTableSql = `CREATE TABLE IF NOT EXISTS ${tableName} (${columnsWithTypes.join(
+      ", "
+    )})`;
 
     console.log(`Executing: ${createTableSql}`);
     await client.query(createTableSql);
@@ -95,11 +93,9 @@ async function importCsvToDb() {
   try {
     await setupDatabase(pool, TABLE_NAME, DB_COLUMN_NAMES);
 
-    const insertSqlBase = `INSERT INTO ${TABLE_NAME} (${
-      DB_COLUMN_NAMES.join(
-        ", ",
-      )
-    }) VALUES `;
+    const insertSqlBase = `INSERT INTO ${TABLE_NAME} (${DB_COLUMN_NAMES.join(
+      ", "
+    )}) VALUES `;
 
     const parser = parse({
       delimiter: ",",
@@ -127,7 +123,7 @@ async function importCsvToDb() {
           }
         } catch (parseError) {
           console.warn(
-            `Warning: Could not parse value "${value}" at row ${context.lines}, column index ${context.index}. Inserting NULL.`,
+            `Warning: Could not parse value "${value}" at row ${context.lines}, column index ${context.index}. Inserting NULL.`
           );
           return null;
         }
@@ -158,7 +154,7 @@ async function importCsvToDb() {
         await client.query("COMMIT");
         processedRows += currentBatch.length;
         console.log(
-          `Committed batch of ${currentBatch.length} rows. Total processed: ${processedRows}`,
+          `Committed batch of ${currentBatch.length} rows. Total processed: ${processedRows}`
         );
       } catch (err) {
         console.error("Error during batch insert:", err);
@@ -199,7 +195,7 @@ async function importCsvToDb() {
             // Check if calculation resulted in a valid number
             if (isNaN(estimatedIncome)) {
               console.warn(
-                `Warning: Calculation resulted in NaN for row ${rowCount}. Setting estimated income to NULL. Inputs: MSA Income=${msaIncome}, Tract Percentage=${tractPercentage}`,
+                `Warning: Calculation resulted in NaN for row ${rowCount}. Setting estimated income to NULL. Inputs: MSA Income=${msaIncome}, Tract Percentage=${tractPercentage}`
               );
               estimatedIncome = null;
             }
@@ -232,7 +228,7 @@ async function importCsvToDb() {
         } catch (e) {
           console.error(
             `Error processing data logic for row ${rowCount}: ${e.message}`,
-            record,
+            record
           );
           parser.pause();
           console.error("Pausing stream due to row processing error.");
@@ -254,7 +250,7 @@ async function importCsvToDb() {
       cleanupAndEndPool(
         pool,
         [],
-        `Import process finished. Final processed count (approx): ${processedRows}`,
+        `Import process finished. Final processed count (approx): ${processedRows}`
       );
     });
 
@@ -279,16 +275,16 @@ async function cleanupAndEndPool(pool, remainingBatch, message) {
   try {
     if (remainingBatch && remainingBatch.length > 0) {
       console.warn(
-        `Attempting to insert ${remainingBatch.length} rows from incomplete batch before closing...`,
+        `Attempting to insert ${remainingBatch.length} rows from incomplete batch before closing...`
       );
       console.warn(
-        "Skipping final batch insertion during cleanup to ensure pool closure.",
+        "Skipping final batch insertion during cleanup to ensure pool closure."
       );
     }
   } catch (finalInsertErr) {
     console.error(
       "Error inserting final batch during cleanup:",
-      finalInsertErr,
+      finalInsertErr
     );
   } finally {
     if (pool) {
@@ -305,6 +301,6 @@ if (require.main === module) {
   console.log("Starting CSV to PostgreSQL import process (Node.js)...");
   importCsvToDb();
   console.log(
-    "Import process initiated (asynchronous). Check logs for progress and completion.",
+    "Import process initiated (asynchronous). Check logs for progress and completion."
   );
 }
