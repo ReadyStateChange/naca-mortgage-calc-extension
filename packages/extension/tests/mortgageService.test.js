@@ -16,9 +16,9 @@ describe("calculateMortgage", () => {
       "price"
     );
 
-    expect(result.ok).toBe(false);
-    expect(result.errors).toBeDefined();
-    expect(result.errors[0].field).toBe("price");
+    expect(result.kind).toBe("failure");
+    expect(result.error).toBeDefined();
+    expect(result.error.field).toBe("price");
   });
 
   it("returns calculated results for valid input", () => {
@@ -35,7 +35,7 @@ describe("calculateMortgage", () => {
       "price"
     );
 
-    expect(result.ok).toBe(true);
+    expect(result.kind).toBe("success");
     expect(result.data).toBeDefined();
     expect(result.data.purchasePrice).toBe(300000);
     expect(typeof result.data.monthlyPayment).toBe("number");

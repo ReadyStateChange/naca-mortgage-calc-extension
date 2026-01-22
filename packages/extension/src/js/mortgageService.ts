@@ -10,7 +10,7 @@ import { MortgageCalculator } from "@naca-app/calculator";
 import {
   validateCalculatorInput,
   type RawCalculatorInput,
-  type ValidationError,
+  type ValidationFailure,
 } from "./inputValidator";
 
 export interface CalculationResult {
@@ -23,13 +23,13 @@ export interface CalculationResult {
 }
 
 export interface CalculateMortgageSuccess {
-  ok: true;
+  kind: 'success';
   data: CalculationResult;
 }
 
 export interface CalculateMortgageError {
-  ok: false;
-  errors: ValidationError[];
+  kind: 'failure';
+  error: ValidationFailure;
 }
 
 export type CalculateMortgageResult = CalculateMortgageSuccess | CalculateMortgageError;
@@ -56,8 +56,8 @@ export function calculateMortgage(
 ): CalculateMortgageResult {
   // 1. Validate
   const validation = validateCalculatorInput(rawInput);
-  if (!validation.ok) {
-    return { ok: false, errors: validation.errors || [] };
+  if (validation.kind === 'failure') {
+    return { kind: 'failure', error: validation };
   }
 
   // 2. Calculate
@@ -66,7 +66,7 @@ export function calculateMortgage(
   const result = calculator.calculateRaw(validation.data);
 
   // 3. Return raw numbers (UI formats them)
-  return { ok: true, data: result };
+  return { kind: 'success', data: result };
 }
 
 /**

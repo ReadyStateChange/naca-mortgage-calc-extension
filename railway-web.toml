@@ -1,6 +1,5 @@
-# Railway config for monorepo deployment
-# Important: Do NOT set Root Directory in Railway dashboard - deploy from repo root
-# so that workspace dependencies (packages/naca-mortgage-calculator) are available
+# Railway config for the website service
+# Set Config File Path in Railway dashboard to: /railway-web.toml
 
 [build]
 builder = "nixpacks"

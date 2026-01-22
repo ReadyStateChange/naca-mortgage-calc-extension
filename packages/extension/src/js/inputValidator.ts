@@ -3,16 +3,20 @@
  * Pure functions with no DOM dependencies
  */
 
-export interface ValidationError {
-  field: string;
+export type ValidationField = 'price' | 'term' | 'rate' | 'tax' | 'insurance' | 'hoaFee' | 'principalBuydown';
+
+export interface ValidationSuccess<T> {
+  kind: 'success';
+  data: T;
+}
+
+export interface ValidationFailure {
+  kind: 'failure';
+  field: ValidationField;
   message: string;
 }
 
-export interface ValidationResult<T = unknown> {
-  ok: boolean;
-  data?: T;
-  errors?: ValidationError[];
-}
+export type ValidationResult<T> = ValidationSuccess<T> | ValidationFailure;
 
 export interface RawCalculatorInput {
   price: string;
@@ -40,16 +44,16 @@ export interface ValidatedCalculatorInput {
 export function validatePrice(value: string): ValidationResult<number> {
   const trimmed = String(value).trim();
   if (trimmed === "") {
-    return { ok: false, errors: [{ field: "price", message: "Required" }] };
+    return { kind: 'failure', field: 'price', message: 'Required' };
   }
   const num = parseFloat(trimmed);
   if (isNaN(num)) {
-    return { ok: false, errors: [{ field: "price", message: "Must be a number" }] };
+    return { kind: 'failure', field: 'price', message: 'Must be a number' };
   }
   if (num < 0) {
-    return { ok: false, errors: [{ field: "price", message: "Must be positive" }] };
+    return { kind: 'failure', field: 'price', message: 'Must be positive' };
   }
-  return { ok: true, data: num };
+  return { kind: 'success', data: num };
 }
 
 const VALID_TERMS = [15, 20, 30];
@@ -61,30 +65,22 @@ export function validateMortgageRate(
   termValue: string,
   rateValue: string
 ): ValidationResult<{ term: number; rate: number }> {
-  const errors: ValidationError[] = [];
-
   // Parse and validate term
   const term = parseInt(termValue, 10);
   if (isNaN(term) || !VALID_TERMS.includes(term)) {
-    errors.push({
-      field: "term",
-      message: "Invalid term. Must be 15, 20, or 30"
-    });
-    return { ok: false, errors };
+    return { kind: 'failure', field: 'term', message: 'Invalid term. Must be 15, 20, or 30' };
   }
 
   // Parse and validate rate
   const rate = parseFloat(rateValue);
   if (isNaN(rate)) {
-    errors.push({ field: "rate", message: "Rate must be a number" });
-    return { ok: false, errors };
+    return { kind: 'failure', field: 'rate', message: 'Rate must be a number' };
   }
   if (rate <= 0) {
-    errors.push({ field: "rate", message: "Rate must be positive" });
-    return { ok: false, errors };
+    return { kind: 'failure', field: 'rate', message: 'Rate must be positive' };
   }
 
-  return { ok: true, data: { term, rate } };
+  return { kind: 'success', data: { term, rate } };
 }
 
 /**
@@ -103,99 +99,89 @@ for (let i = 5; i <= 30.5; i += 0.5) {
 export function validatePropertyTax(value: string): ValidationResult<number> {
   const trimmed = String(value).trim();
   if (trimmed === "") {
-    return { ok: false, errors: [{ field: "tax", message: "Required" }] };
+    return { kind: 'failure', field: 'tax', message: 'Required' };
   }
 
   const num = parseFloat(trimmed);
   if (isNaN(num)) {
-    return { ok: false, errors: [{ field: "tax", message: "Property tax must be a number" }] };
+    return { kind: 'failure', field: 'tax', message: 'Property tax must be a number' };
   }
 
   // Check if rate is in the valid list
   const roundedNum = Math.round(num * 10) / 10; // Round to 1 decimal place for comparison
   if (!VALID_PROPERTY_TAX_RATES.includes(roundedNum)) {
-    return { ok: false, errors: [{ field: "tax", message: "Invalid property tax rate" }] };
+    return { kind: 'failure', field: 'tax', message: 'Invalid property tax rate' };
   }
 
-  return { ok: true, data: num };
+  return { kind: 'success', data: num };
 }
 
 /**
  * Validate a non-negative number field
  */
-export function validateNonNegative(value: string, fieldName: string): ValidationResult<number> {
+export function validateNonNegative(value: string, field: ValidationField): ValidationResult<number> {
   const num = parseFloat(value);
   if (isNaN(num)) {
-    return { ok: false, errors: [{ field: fieldName, message: "Must be a number" }] };
+    return { kind: 'failure', field, message: 'Must be a number' };
   }
   if (num < 0) {
-    return { ok: false, errors: [{ field: fieldName, message: "Must be non-negative" }] };
+    return { kind: 'failure', field, message: 'Must be non-negative' };
   }
-  return { ok: true, data: num };
+  return { kind: 'success', data: num };
 }
 
 /**
- * Validate all calculator inputs
+ * Validate all calculator inputs (fail-fast: returns first error encountered)
  */
 export function validateCalculatorInput(
   raw: RawCalculatorInput
 ): ValidationResult<ValidatedCalculatorInput> {
-  const errors: ValidationError[] = [];
-  const data: Partial<ValidatedCalculatorInput> = {};
-
   // Validate price
   const priceResult = validatePrice(raw.price);
-  if (!priceResult.ok) errors.push(...(priceResult.errors || []));
-  else data.price = priceResult.data;
+  if (priceResult.kind === 'failure') return priceResult;
 
   // Validate term and rate together
   const mortgageRateResult = validateMortgageRate(raw.term, raw.rate);
-  if (!mortgageRateResult.ok) {
-    errors.push(...(mortgageRateResult.errors || []));
-  } else {
-    data.term = mortgageRateResult.data!.term;
-    data.rate = mortgageRateResult.data!.rate;
-  }
+  if (mortgageRateResult.kind === 'failure') return mortgageRateResult;
 
   // Validate tax (using hardcoded property tax options)
   if (raw.tax === undefined || raw.tax === null) {
-    errors.push({ field: "tax", message: "Required" });
-  } else {
-    const taxResult = validatePropertyTax(String(raw.tax));
-    if (!taxResult.ok) errors.push(...(taxResult.errors || []));
-    else data.tax = taxResult.data;
+    return { kind: 'failure', field: 'tax', message: 'Required' };
   }
+  const taxResult = validatePropertyTax(String(raw.tax));
+  if (taxResult.kind === 'failure') return taxResult;
 
   // Validate insurance (required field)
   if (raw.insurance === undefined || raw.insurance === null) {
-    errors.push({ field: "insurance", message: "Required" });
-  } else {
-    const insuranceResult = validateNonNegative(String(raw.insurance), "insurance");
-    if (!insuranceResult.ok) errors.push(...(insuranceResult.errors || []));
-    else data.insurance = insuranceResult.data;
+    return { kind: 'failure', field: 'insurance', message: 'Required' };
   }
+  const insuranceResult = validateNonNegative(String(raw.insurance), 'insurance');
+  if (insuranceResult.kind === 'failure') return insuranceResult;
 
   // Validate hoaFee (required field)
   if (raw.hoaFee === undefined || raw.hoaFee === null) {
-    errors.push({ field: "hoaFee", message: "Required" });
-  } else {
-    const hoaResult = validateNonNegative(String(raw.hoaFee), "hoaFee");
-    if (!hoaResult.ok) errors.push(...(hoaResult.errors || []));
-    else data.hoaFee = hoaResult.data;
+    return { kind: 'failure', field: 'hoaFee', message: 'Required' };
   }
+  const hoaResult = validateNonNegative(String(raw.hoaFee), 'hoaFee');
+  if (hoaResult.kind === 'failure') return hoaResult;
 
   // Validate principalBuydown (required field)
   if (raw.principalBuydown === undefined || raw.principalBuydown === null) {
-    errors.push({ field: "principalBuydown", message: "Required" });
-  } else {
-    const buydownResult = validateNonNegative(String(raw.principalBuydown), "principalBuydown");
-    if (!buydownResult.ok) errors.push(...(buydownResult.errors || []));
-    else data.principalBuydown = buydownResult.data;
+    return { kind: 'failure', field: 'principalBuydown', message: 'Required' };
   }
+  const buydownResult = validateNonNegative(String(raw.principalBuydown), 'principalBuydown');
+  if (buydownResult.kind === 'failure') return buydownResult;
 
-  if (errors.length > 0) {
-    return { ok: false, errors };
-  }
-
-  return { ok: true, data: data as ValidatedCalculatorInput };
+  return {
+    kind: 'success',
+    data: {
+      price: priceResult.data,
+      term: mortgageRateResult.data.term,
+      rate: mortgageRateResult.data.rate,
+      tax: taxResult.data,
+      insurance: insuranceResult.data,
+      hoaFee: hoaResult.data,
+      principalBuydown: buydownResult.data
+    }
+  };
 }

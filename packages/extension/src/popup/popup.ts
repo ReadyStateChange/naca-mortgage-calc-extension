@@ -6,7 +6,7 @@ import {
   type CalculationResult,
   type RecalculateInput,
 } from "../js/mortgageService";
-import type { ValidationError } from "../js/inputValidator";
+import type { ValidationFailure } from "../js/inputValidator";
 
 const RATE_CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let currentCalcMethod: "payment" | "price" = "payment";
 
   // Error display functions
-  function showValidationErrors(errors: ValidationError[]): void {
+  function showValidationErrors(errors: ValidationFailure[]): void {
     clearValidationErrors();
     errors.forEach((error) => {
       const errorEl = document.getElementById(`${error.field}-error`);
@@ -329,8 +329,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const result = calculateMortgage(rawInput, currentCalcMethod);
 
-    if (!result.ok) {
-      showValidationErrors(result.errors);
+    if (result.kind === 'failure') {
+      showValidationErrors([result.error]);
       return;
     }
 
