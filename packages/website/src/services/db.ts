@@ -18,7 +18,7 @@ export const pool = new Pool({
   ssl: { rejectUnauthorized: false }, // Neon requires SSL
   max: 20, // Maximum pool size
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 15000,
 });
 
 // Test connection on startup

@@ -12,6 +12,7 @@ async function run() {
     console.log("ℹ️ Cron result:", result);
   } catch (error) {
     console.error("❌ Rate cron failed:", error);
+    await pool.end();
     exitCode = 1;
   } finally {
     await pool.end(); // Required so the process exits cleanly on Railway Cron
