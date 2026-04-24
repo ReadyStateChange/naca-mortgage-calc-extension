@@ -2,14 +2,9 @@
 # Set Config File Path in Railway dashboard to: /railway-cron.toml
 
 [build]
-builder = "nixpacks"
+builder = "railpack"
+buildCommand = "bun install && bun run --cwd packages/website build"
 
-[build.nixpacksPlan.phases.setup]
-nixPkgs = ["bun"]
-
-[build.nixpacksPlan.phases.install]
-dependsOn = ["setup"]
-cmds = ["bun install"]
 
 [deploy]
 startCommand = "bun run --cwd packages/website src/scripts/runRateUpdate.ts"
